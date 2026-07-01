@@ -1,60 +1,55 @@
 import { views } from "../data/labels.js";
 
-export function Shell({ state, active, activeLabel, estimate, content, modal }) {
-  const entryCount = Object.keys(state.entries).length;
-  return `
-    <div class="app-frame">
-      <aside class="rail" aria-label="Navegacion principal">
-        <div class="wordmark">
-          <span class="wordmark-mark" aria-hidden="true"></span>
-          <div>
-            <h1>Ciclica</h1>
-            <p>Private cycle intelligence</p>
-          </div>
-        </div>
+function getPhaseLabel(estimate) {
+  const phaseLabel = {
+    menstrual: "Menstrual",
+    follicular: "Folicular",
+    ovulatory: "Ovulatoria",
+    luteal: "Lútea",
+    unknown: "Sin datos",
+  };
+  return phaseLabel[estimate.phase] || "Sin datos";
+}
 
-        <nav class="nav-list">
+export function Shell({ state, active, activeLabel, estimate, content, modal }) {
+  const cycleLength = state.profile?.cycleLength || 28;
+  const cycleMeta = estimate.day ? `Día ${estimate.day} / ${cycleLength}` : "Configura tu ciclo";
+  const phaseClass = estimate.phase || "unknown";
+
+  return `
+    <div class="app-shell phase-${phaseClass}" aria-label="Ciclica local">
+      <aside class="app-shell__sidebar" aria-label="Navegación principal">
+        <header class="brand-block">
+          <p class="brand-mark">◐</p>
+          <h1>Ciclica</h1>
+          <p class="brand-sub">Local + privado</p>
+        </header>
+
+        <nav class="app-nav" aria-label="Secciones">
           ${views.map((view) => `
             <button class="nav-item ${active === view.id ? "is-active" : ""}" data-action="view" data-view="${view.id}" type="button">
-              <span aria-hidden="true">${view.icon}</span>
-              ${view.label}
+              <span class="nav-icon" aria-hidden="true">${view.icon}</span>
+              <span>${view.label}</span>
             </button>
           `).join("")}
         </nav>
 
-        <section class="vault-panel" aria-label="Privacidad local">
-          <div class="vault-row"><span>Storage</span><strong>Local</strong></div>
-          <div class="vault-row"><span>Account</span><strong>None</strong></div>
-          <div class="vault-row"><span>Network</span><strong>Off by default</strong></div>
-          <button class="text-action" data-action="export" type="button">Export dataset</button>
-        </section>
+        <div class="sidebar-tools">
+          <button class="chip-action" data-action="profile" type="button">Ajustes</button>
+          <button class="chip-action chip-outline" data-action="export" type="button">Exportar</button>
+        </div>
       </aside>
 
-      <main class="workspace">
-        <header class="topbar">
-          <div>
-            <p class="eyebrow">${activeLabel}</p>
-            <h2>Today, interpreted locally.</h2>
+      <main class="app-shell__workspace">
+        <header class="screen-header">
+          <div class="screen-copy">
+            <p class="kicker">${cycleMeta} · ${estimate.confidence}</p>
+            <h2>${activeLabel}</h2>
           </div>
-          <div class="topbar-stats" aria-label="Estado de Ciclica">
-            <div><span>Confidence</span><strong>${estimate.confidence}</strong></div>
-            <div><span>Entries</span><strong>${entryCount}</strong></div>
-          </div>
+          <div class="screen-pill">${getPhaseLabel(estimate)}</div>
         </header>
 
-        <section class="signal-strip" aria-label="Senal del ciclo">
-          <div class="signal-primary">
-            <span class="signal-index">01</span>
-            <div>
-              <p class="eyebrow">Cycle signal</p>
-              <h3>${estimate.headline}</h3>
-            </div>
-          </div>
-          <p>${estimate.summary}</p>
-          <div class="signal-state"><span>Private model layer</span><strong>Not connected yet</strong></div>
-        </section>
-
-        ${content}
+        <section class="app-content">${content}</section>
       </main>
 
       ${modal}

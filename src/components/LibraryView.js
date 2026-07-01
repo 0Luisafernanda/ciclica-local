@@ -1,71 +1,60 @@
 const updates = [
   {
-    status: "Adopted",
-    title: "SOMP/SOP terminology bridge",
-    scope: "Language + prediction caution",
-    behavior: "The app shows SOMP/SOP together and avoids assuming fixed ovulation for this profile.",
-    review: "Needs source packet before public release",
+    status: "Aplicado",
+    title: "SOMP/SOP nomenclatura dual",
+    scope: "Lenguaje + frontera de precisión",
+    behavior: "Mostramos SOMP y SOP juntos y evitamos diagnósticos cerrados.",
+    review: "Pendiente evidencia clínico-popular local por región.",
   },
   {
-    status: "Design rule",
-    title: "No automatic diagnosis",
-    scope: "Safety boundary",
-    behavior: "Ciclica can flag patterns for consultation, but never confirms PCOS/SOMP, PMDD, endometriosis or pregnancy.",
-    review: "Locked for MVP",
+    status: "Bloqueado",
+    title: "Pronóstico hormonal fijo",
+    scope: "Modelado de fase sin registro suficiente",
+    behavior: "No mostramos fechas exactas sin base sólida de datos.",
+    review: "Regla de seguridad activa.",
   },
   {
-    status: "Planned",
-    title: "PMDD / TDPM severity window",
-    scope: "Mood + cycle timing",
-    behavior: "Track symptom interference in the late luteal window and prepare a clinician-facing summary.",
-    review: "Clinical copy pending",
+    status: "Plan",
+    title: "Prioridad PMDD",
+    scope: "Animo + fase lútea",
+    behavior: "Añadiremos seguimiento de interferencia funcional por ventana.",
+    review: "Diseño de copy pendiente.",
   },
   {
-    status: "Planned",
-    title: "Endometriosis red flags",
-    scope: "Pain, bleeding, sex, bowel, urinary symptoms",
-    behavior: "Escalate repeated disabling pain into a consultation prompt instead of normalizing it.",
-    review: "Clinical copy pending",
-  },
-  {
-    status: "Principle",
-    title: "Fertility prediction is not contraception",
-    scope: "Ovulation windows",
-    behavior: "Confidence labels stay visible; irregular cycles reduce certainty automatically.",
-    review: "Locked for MVP",
+    status: "Plan",
+    title: "Alertas de dolor persistente",
+    scope: "Dolor alto y contexto clínico",
+    behavior: "Derivar a nota médica si hay repetición de dolor limitante.",
+    review: "Pendiente textos de seguridad.",
   },
 ];
 
-export function LibraryView(state) {
+export function LibraryView() {
   return `
-    <section class="view ${state.activeView === "library" ? "is-visible" : ""}" data-view-panel="library">
-      <div class="section-head compact">
+    <section class="view is-visible" data-view-panel="library">
+      <div class="panel library-head">
         <div>
-          <p class="eyebrow">Clinical operating log</p>
-          <h3>Every claim should change product behavior.</h3>
+          <p class="micro-label">Transparencia</p>
+          <h3>Diario clínico: producto en mejora continua</h3>
+          <p>Solo se cambian reglas cuando hay razón y seguridad de uso.</p>
         </div>
-        <span class="version-badge">Evidence v0.1</span>
       </div>
 
-      <div class="evidence-ledger panel">
-        <div class="ledger-row ledger-head">
-          <span>Status</span>
-          <span>Update</span>
-          <span>Product behavior</span>
-          <span>Review</span>
-        </div>
-        ${updates.map((item) => `
-          <article class="ledger-row">
-            <span class="status-token">${item.status}</span>
-            <div>
-              <h4>${item.title}</h4>
-              <p>${item.scope}</p>
-            </div>
+      <section class="library-grid">
+        ${updates
+          .map(
+            (item) => `
+          <article class="update-card">
+            <span class="pill-status">${item.status}</span>
+            <h4>${item.title}</h4>
+            <p class="scope">${item.scope}</p>
             <p>${item.behavior}</p>
-            <p>${item.review}</p>
+            <small>${item.review}</small>
           </article>
-        `).join("")}
-      </div>
+        `,
+          )
+          .join("")}
+      </section>
     </section>
   `;
 }

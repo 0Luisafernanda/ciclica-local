@@ -12,17 +12,19 @@ export function App(state) {
   const activeLabel = views.find((view) => view.id === active)?.label || "Hoy";
   const estimate = getCycleEstimate(state);
 
+  const viewBodies = {
+    today: TodayView(state),
+    patterns: PatternsView(state),
+    consult: ConsultView(state),
+    library: LibraryView(state),
+  };
+
   return Shell({
     state,
     active,
     activeLabel,
     estimate,
-    content: `
-      ${TodayView(state)}
-      ${PatternsView(state)}
-      ${ConsultView(state)}
-      ${LibraryView(state)}
-    `,
+    content: viewBodies[active] || viewBodies.today,
     modal: ProfileModal(state),
   });
 }
