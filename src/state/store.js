@@ -4,6 +4,7 @@ const defaultState = {
   activeView: "today",
   profile: null,
   entries: {},
+  onboardingDismissed: false,
 };
 
 export function createStore() {
