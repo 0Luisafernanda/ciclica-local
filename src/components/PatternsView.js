@@ -10,8 +10,9 @@ export function PatternsView(state) {
     <section class="view is-visible" data-view-panel="patterns">
       <div class="panel patterns-header">
         <div>
-          <p class="micro-label">Mapa personal</p>
-          <h3>Patrones de tu ciclo</h3>
+          <p class="micro-label">Mapa de 28 días</p>
+          <h3>Señales que sí valen la pena ver</h3>
+          <p>Un mapa compacto para reconocer ritmos, repeticiones y cambios útiles.</p>
         </div>
         <span class="count-pill">${Object.keys(state.entries).length} registros</span>
       </div>

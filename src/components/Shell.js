@@ -11,6 +11,16 @@ function getPhaseLabel(estimate) {
   return phaseLabel[estimate.phase] || "Sin datos";
 }
 
+function getSectionHint(active) {
+  const hints = {
+    today: "Vista principal para registrar lo de hoy y leer una lectura breve.",
+    patterns: "Mapa de 28 días para reconocer ritmos y repeticiones útiles.",
+    consult: "Resumen limpio para conversar con una profesional de salud.",
+    library: "Transparencia del producto, reglas y decisiones en curso.",
+  };
+  return hints[active] || "Vista principal y privacidad local por defecto.";
+}
+
 export function Shell({ state, active, activeLabel, estimate, content, modal }) {
   const cycleLength = state.profile?.cycleLength || 28;
   const cycleMeta = estimate.day ? `Día ${estimate.day} / ${cycleLength}` : "Configura tu ciclo";
@@ -18,13 +28,14 @@ export function Shell({ state, active, activeLabel, estimate, content, modal }) 
 
   return `
     <div class="app-shell phase-${phaseClass}" aria-label="Ciclica local">
-      <main class="pocket-app" aria-label="Ciclica">
-        <header class="pocket-header">
+      <div class="web-container">
+        <main class="pocket-app" aria-label="Ciclica">
+          <header class="pocket-header">
           <div class="brand-block">
             <p class="brand-mark" aria-hidden="true">◐</p>
             <div>
               <h1>Ciclica</h1>
-              <p class="brand-sub">Local + privado</p>
+              <p class="brand-sub">Local + privado · una vista principal</p>
             </div>
           </div>
 
@@ -39,6 +50,7 @@ export function Shell({ state, active, activeLabel, estimate, content, modal }) 
           <div class="screen-copy">
             <p class="kicker">${cycleMeta} · ${estimate.confidence}</p>
             <h2>${activeLabel}</h2>
+            <p class="screen-hint">${getSectionHint(active)}</p>
           </div>
           <div class="screen-pill">${getPhaseLabel(estimate)}</div>
         </section>
@@ -53,7 +65,8 @@ export function Shell({ state, active, activeLabel, estimate, content, modal }) 
             </button>
           `).join("")}
         </nav>
-      </main>
+        </main>
+      </div>
 
       ${modal}
       <div class="toast" id="toast" role="status" aria-live="polite"></div>

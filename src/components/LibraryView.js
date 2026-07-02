@@ -35,7 +35,7 @@ export function LibraryView() {
       <div class="panel library-head">
         <div>
           <p class="micro-label">Transparencia</p>
-          <h3>Diario clínico: producto en mejora continua</h3>
+          <h3>Por qué Ciclica funciona así</h3>
           <p>Solo se cambian reglas cuando hay razón y seguridad de uso.</p>
         </div>
       </div>

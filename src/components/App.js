@@ -1,11 +1,11 @@
-import { views } from "../data/labels.js?v=pocket-ux-5";
-import { Shell } from "./Shell.js?v=pocket-ux-5";
-import { TodayView } from "./TodayView.js?v=pocket-ux-5";
-import { PatternsView } from "./PatternsView.js?v=pocket-ux-5";
-import { ConsultView } from "./ConsultView.js?v=pocket-ux-5";
-import { LibraryView } from "./LibraryView.js?v=pocket-ux-5";
-import { ProfileModal } from "./ProfileModal.js?v=pocket-ux-5";
-import { getCycleEstimate } from "../domain/cycle.js?v=pocket-ux-5";
+import { views } from "../data/labels.js?v=visual-system-4";
+import { Shell } from "./Shell.js?v=visual-system-4";
+import { TodayView } from "./TodayView.js?v=visual-system-4";
+import { PatternsView } from "./PatternsView.js?v=visual-system-4";
+import { ConsultView } from "./ConsultView.js?v=visual-system-4";
+import { LibraryView } from "./LibraryView.js?v=visual-system-4";
+import { ProfileModal } from "./ProfileModal.js?v=visual-system-4";
+import { getCycleEstimate } from "../domain/cycle.js?v=visual-system-4";
 
 export function App(state) {
   const active = state.activeView || "today";

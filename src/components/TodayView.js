@@ -43,6 +43,7 @@ export function TodayView(state) {
     <section class="view is-visible" data-view-panel="today">
       <section class="panel today-focus-card">
         <p class="micro-label">${dayLabel}</p>
+        <p class="hero-lead">Una sola vista principal para registrar hoy, entender lo importante y seguir sin ruido.</p>
         <h3>${hasEntry ? `Tu registro de hoy` : `Registra hoy`}</h3>
         <p>${insight.title}</p>
         <p>${insight.body}</p>
