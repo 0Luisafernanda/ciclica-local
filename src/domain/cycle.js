@@ -147,8 +147,10 @@ function getPhaseActions(phase, entry, contexts) {
     luteal: ["Protege sueno y comidas estables.", "Reduce friccion si puedes: exceso de cafeina, multitarea o conversaciones dificiles.", "Si tristeza o irritabilidad interfieren cada ciclo, registralo para hablar de TDPM/PMDD."],
   };
   const actions = [...actionMap[phase]];
-  if (entry?.pain >= 7) actions.unshift("Dolor alto hoy: si se repite o limita tu dia, merece consulta.");
-  if (entry?.sleep <= 4) actions.unshift("Sueno bajo hoy: ajusta expectativas antes de culparte por energia o animo.");
+  const urgentActions = [];
+  if (entry?.pain >= 7) urgentActions.push("Dolor alto hoy: si se repite o limita tu dia, merece consulta.");
+  if (entry?.sleep <= 4) urgentActions.push("Sueno bajo hoy: ajusta expectativas antes de culparte por energia o animo.");
+  actions.unshift(...urgentActions);
   if (contexts.includes("noFertility")) actions.push("El foco de fertilidad esta minimizado por tu preferencia.");
   return actions.slice(0, 4);
 }

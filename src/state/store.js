@@ -10,13 +10,19 @@ const defaultState = {
 export function createStore() {
   let state = loadState();
   const listeners = new Set();
+  const notify = () => listeners.forEach((listener) => listener(state));
 
   return {
     getState: () => state,
     setState: (updater) => {
       state = typeof updater === "function" ? updater(state) : { ...state, ...updater };
       saveState(state);
-      listeners.forEach((listener) => listener(state));
+      notify();
+    },
+    reset: () => {
+      state = structuredClone(defaultState);
+      saveState(state);
+      notify();
     },
     subscribe: (listener) => {
       listeners.add(listener);
@@ -36,5 +42,9 @@ function loadState() {
 }
 
 function saveState(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.warn("No se pudo guardar el estado local de Ciclica.", error);
+  }
 }

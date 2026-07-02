@@ -6,7 +6,7 @@ export function buildReportHTML(state) {
   const entries = getEntries(state);
   const profile = state.profile;
   const avgPain = average(entries.map((entry) => entry.pain));
-  const contexts = profile?.contexts?.map((context) => contextLabels[context]).join(", ");
+  const contexts = getContextLabels(profile?.contexts).join(", ");
   const notes = entries.filter((entry) => entry.note).slice(-5);
 
   return `
@@ -17,9 +17,9 @@ export function buildReportHTML(state) {
       <section>
         <h4>Perfil</h4>
         <ul>
-          <li>Ultima menstruacion: ${profile?.lastPeriod || "pendiente"}</li>
-          <li>Duracion aproximada: ${profile?.cycleLength || "pendiente"} dias</li>
-          <li>Regularidad: ${profile?.regularity || "pendiente"}</li>
+          <li>Ultima menstruacion: ${escapeHTML(profile?.lastPeriod || "pendiente")}</li>
+          <li>Duracion aproximada: ${escapeHTML(profile?.cycleLength || "pendiente")} dias</li>
+          <li>Regularidad: ${escapeHTML(profile?.regularity || "pendiente")}</li>
           <li>Contexto: ${contexts || "sin contexto marcado"}</li>
         </ul>
       </section>
@@ -41,7 +41,7 @@ export function buildReportHTML(state) {
 export function buildPlainReport(state) {
   const entries = getEntries(state);
   const profile = state.profile;
-  const contexts = profile?.contexts?.map((context) => contextLabels[context]).join(", ");
+  const contexts = getContextLabels(profile?.contexts).join(", ");
   return [
     "Ciclica Local - Resumen para consulta",
     "Este reporte fue generado localmente y no es diagnostico.",
@@ -58,6 +58,10 @@ export function buildPlainReport(state) {
     "Notas recientes:",
     ...entries.filter((entry) => entry.note).slice(-5).map((entry) => `- ${entry.date}: ${entry.note}`),
   ].join("\n");
+}
+
+function getContextLabels(contexts = []) {
+  return contexts.map((context) => contextLabels[context]).filter(Boolean);
 }
 
 function average(values) {

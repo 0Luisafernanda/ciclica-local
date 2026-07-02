@@ -67,11 +67,13 @@ export function bindApp(root, store) {
 
     updateOnboardingStep(profileForm);
 
-    root.querySelector("[data-action='onboarding-next']")?.addEventListener("click", () => {
-      const current = Number(profileForm?.dataset.step || 0);
-      if (!canAdvance(profileForm, current)) return;
-      profileForm.dataset.step = String(Math.min(3, current + 1));
-      updateOnboardingStep(profileForm);
+    root.querySelectorAll("[data-action='onboarding-next']").forEach((button) => {
+      button.addEventListener("click", () => {
+        const current = Number(profileForm?.dataset.step || 0);
+        if (!canAdvance(profileForm, current)) return;
+        profileForm.dataset.step = String(Math.min(3, current + 1));
+        updateOnboardingStep(profileForm);
+      });
     });
 
     root.querySelector("[data-action='onboarding-back']")?.addEventListener("click", () => {
@@ -149,6 +151,13 @@ export function bindApp(root, store) {
       URL.revokeObjectURL(url);
       toast(root, "Exportacion local creada.");
     });
+
+    root.querySelector("[data-action='reset-data']")?.addEventListener("click", () => {
+      const confirmed = window.confirm("Esto borra tu perfil y registros de este dispositivo. Si quieres conservar una copia, exporta antes. ¿Borrar datos locales?");
+      if (!confirmed) return;
+      store.reset();
+      toast(root, "Datos locales borrados.");
+    });
   }
 }
 
@@ -175,7 +184,7 @@ function updateOnboardingStep(form) {
   });
   form.querySelector("[data-action='onboarding-back']")?.toggleAttribute("disabled", step === 0);
   form.querySelector(".onboarding-actions")?.classList.toggle("is-intro", step === 0);
-  form.querySelector("[data-action='onboarding-next']")?.classList.toggle("is-hidden", step === 0 || step === 3);
+  form.querySelector(".onboarding-actions [data-action='onboarding-next']")?.classList.toggle("is-hidden", step === 0 || step === 3);
   form.querySelector("[data-action='save-profile']")?.classList.toggle("is-visible", step === 3);
 }
 

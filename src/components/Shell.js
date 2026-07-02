@@ -18,38 +18,41 @@ export function Shell({ state, active, activeLabel, estimate, content, modal }) 
 
   return `
     <div class="app-shell phase-${phaseClass}" aria-label="Ciclica local">
-      <aside class="app-shell__sidebar" aria-label="Navegación principal">
-        <header class="brand-block">
-          <p class="brand-mark">◐</p>
-          <h1>Ciclica</h1>
-          <p class="brand-sub">Local + privado</p>
+      <main class="pocket-app" aria-label="Ciclica">
+        <header class="pocket-header">
+          <div class="brand-block">
+            <p class="brand-mark" aria-hidden="true">◐</p>
+            <div>
+              <h1>Ciclica</h1>
+              <p class="brand-sub">Local + privado</p>
+            </div>
+          </div>
+
+          <div class="top-actions" aria-label="Acciones">
+            <button class="icon-action" data-action="export" type="button" aria-label="Exportar datos">⇩</button>
+            <button class="icon-action" data-action="profile" type="button" aria-label="Ajustes">⚙︎</button>
+            <button class="icon-action danger-action" data-action="reset-data" type="button" aria-label="Borrar datos locales">⌫</button>
+          </div>
         </header>
 
-        <nav class="app-nav" aria-label="Secciones">
-          ${views.map((view) => `
-            <button class="nav-item ${active === view.id ? "is-active" : ""}" data-action="view" data-view="${view.id}" type="button">
-              <span class="nav-icon" aria-hidden="true">${view.icon}</span>
-              <span>${view.label}</span>
-            </button>
-          `).join("")}
-        </nav>
-
-        <div class="sidebar-tools">
-          <button class="chip-action" data-action="profile" type="button">Ajustes</button>
-          <button class="chip-action chip-outline" data-action="export" type="button">Exportar</button>
-        </div>
-      </aside>
-
-      <main class="app-shell__workspace">
-        <header class="screen-header">
+        <section class="screen-header">
           <div class="screen-copy">
             <p class="kicker">${cycleMeta} · ${estimate.confidence}</p>
             <h2>${activeLabel}</h2>
           </div>
           <div class="screen-pill">${getPhaseLabel(estimate)}</div>
-        </header>
+        </section>
 
         <section class="app-content">${content}</section>
+
+        <nav class="bottom-tabs" aria-label="Secciones">
+          ${views.map((view) => `
+            <button class="tab-item ${active === view.id ? "is-active" : ""}" data-action="view" data-view="${view.id}" type="button" aria-label="${view.label}">
+              <span class="tab-icon" aria-hidden="true">${view.icon}</span>
+              <span>${view.label}</span>
+            </button>
+          `).join("")}
+        </nav>
       </main>
 
       ${modal}
