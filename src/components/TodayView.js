@@ -1,4 +1,4 @@
-import { getInsight } from "../domain/cycle.js";
+import { getInsight, getCycleEstimate } from "../domain/cycle.js";
 import { toISODate } from "../domain/date.js";
 import { escapeHTML } from "../utils/html.js";
 import { bleedingLabels, moodLabels } from "../data/labels.js";
@@ -7,9 +7,13 @@ export function TodayView(state) {
   const date = toISODate(new Date());
   const entry = state.entries[date] || {};
   const insight = getInsight(state, date);
+  const estimate = getCycleEstimate(state);
   const hasEntry = Boolean(state.entries[date]);
   const dayLabel = formatDay(date);
   const profileReady = Boolean(state.profile?.lastPeriod);
+  const cycleLength = state.profile?.cycleLength || 28;
+  const dialModifier = getDialModifier(estimate);
+  const dialProgress = getDialProgress(estimate, cycleLength);
 
   const todaySignals = [
     {
@@ -41,12 +45,19 @@ export function TodayView(state) {
 
   return `
     <section class="view is-visible" data-view-panel="today">
-      <section class="panel today-focus-card">
+      <section class="today-hero">
         <p class="micro-label">${dayLabel}</p>
-        <p class="hero-lead">Una sola vista principal para registrar hoy, entender lo importante y seguir sin ruido.</p>
-        <h3>${hasEntry ? `Tu registro de hoy` : `Registra hoy`}</h3>
-        <p>${insight.title}</p>
-        <p>${insight.body}</p>
+
+        <div class="confidence-dial ${dialModifier}" style="--dial-progress:${dialProgress};--tone:var(--phase-${estimate.phase})" role="img" aria-label="Día ${estimate.day ?? "sin estimar"} de ${cycleLength}, confianza ${estimate.confidence}">
+          <div class="dial-center">
+            <strong>${estimate.day ?? "–"}</strong>
+            <span>${estimate.day ? `de ${cycleLength}` : "sin datos"}</span>
+          </div>
+        </div>
+
+        <h2 class="hero-headline">${insight.title}</h2>
+        <p class="hero-body">${insight.body}</p>
+        <p class="confidence-note">Confianza de esta lectura: <strong>${estimate.confidence}</strong></p>
 
         <div class="focus-chips">
           <span class="chip chip-inline">Ánimo: ${moodValue}</span>
@@ -148,4 +159,16 @@ function formatDay(dateISO) {
     day: "numeric",
     month: "long",
   }).format(date);
+}
+
+function getDialModifier(estimate) {
+  if (estimate.phase === "unknown") return "is-unknown";
+  if (estimate.confidence === "Oculta") return "is-hidden-focus";
+  if (estimate.confidence === "Media-baja") return "is-soft";
+  return "is-solid";
+}
+
+function getDialProgress(estimate, cycleLength) {
+  if (!estimate.day) return 6;
+  return Math.min(100, Math.round((estimate.day / cycleLength) * 100));
 }

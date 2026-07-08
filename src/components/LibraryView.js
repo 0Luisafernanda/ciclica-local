@@ -27,6 +27,13 @@ const updates = [
     behavior: "Derivar a nota médica si hay repetición de dolor limitante.",
     review: "Pendiente textos de seguridad.",
   },
+  {
+    status: "Plan",
+    title: "Lectura de notas con IA local",
+    scope: "Modelo on-device para sintetizar notas propias",
+    behavior: "Probado con transformers.js + WebGPU, 100% offline y verificado sin salida de datos.",
+    review: "Modelo chico (0.5B) es inconsistente entre corridas; modelo mediano (1.5B) crashea en el navegador. Sin base confiable todavia para shippear.",
+  },
 ];
 
 export function LibraryView() {

@@ -2,7 +2,7 @@
 
 Ciclica Local es una app open source, local-first y privada por defecto para registrar tu ciclo, leer patrones útiles y preparar un resumen claro cuando quieras compartirlo con una profesional de salud.
 
-La idea es simple: una sola vista principal para el día a día y tres rutas de apoyo para profundizar solo cuando hace falta.
+La idea es simple: una sola vista principal para el día a día (Hoy) y un único destino secundario (Más) para profundizar solo cuando hace falta.
 
 ## Qué resuelve
 
@@ -15,33 +15,24 @@ La idea es simple: una sola vista principal para el día a día y tres rutas de 
 ## Cómo está organizada
 
 ### 1. Hoy
-La vista central. Aquí se entiende rápidamente:
-- qué día es
+La vista central, la única que aparece en la barra inferior junto con Más. Aquí se entiende rápidamente:
+- qué día es y en qué punto del ciclo estás (dial visual, con confianza honesta: sólida, borrosa por incertidumbre, u oculta por preferencia)
 - qué lectura local sugiere la app
 - qué vale la pena observar hoy
 - cómo registrar lo mínimo sin esfuerzo
 
 Es la pantalla que debe sentirse más importante y más calmada.
 
-### 2. Patrones
-La vista de lectura temporal.
-- muestra los últimos 28 días
-- ayuda a ver intensidad y repeticiones
-- convierte historial en señales útiles, no en ruido
+### 2. Más
+Punto de entrada único a todo lo secundario. Adentro:
 
-### 3. Consulta
-La vista para compartir.
-- resume lo que llevas registrado
-- evita diagnósticos automáticos
-- está pensada para conversar con una profesional si lo necesitas
+- **Patrones** — mapa de los últimos 28 días, intensidad y repeticiones, historial convertido en señales útiles.
+- **Consulta** — resumen limpio para compartir, sin diagnósticos automáticos, pensado para una conversación profesional.
+- **Transparencia** — por qué la app funciona así, qué reglas están activas, qué está aplicado, planeado o bloqueado por seguridad.
 
-### 4. Transparencia
-La vista de confianza.
-- explica decisiones del producto
-- muestra reglas y restricciones
-- separa lo aplicado, lo planeado y lo bloqueado por seguridad
+Cada una se abre con un botón de volver ("‹ Más") para reforzar que son destinos de apoyo, no pantallas al mismo nivel que Hoy.
 
-### 5. Ajustes / perfil
+### 3. Ajustes / perfil
 La capa opcional de configuración.
 - fecha de última menstruación
 - duración aproximada del ciclo

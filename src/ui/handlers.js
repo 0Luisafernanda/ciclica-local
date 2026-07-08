@@ -1,4 +1,4 @@
-import { App } from "../components/App.js";
+import { App } from "../components/App.js?v=confidence-dial-3";
 import { buildPlainReport } from "../domain/report.js";
 import { clamp } from "../domain/date.js";
 
