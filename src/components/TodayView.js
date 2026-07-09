@@ -1,7 +1,7 @@
-import { getInsight, getCycleEstimate } from "../domain/cycle.js";
-import { toISODate } from "../domain/date.js";
-import { escapeHTML } from "../utils/html.js";
-import { bleedingLabels, moodLabels } from "../data/labels.js";
+import { getInsight, getCycleEstimate, getCalendarDays } from "../domain/cycle.js?v=confidence-dial-11";
+import { toISODate } from "../domain/date.js?v=confidence-dial-11";
+import { escapeHTML } from "../utils/html.js?v=confidence-dial-11";
+import { bleedingLabels, moodLabels, skinLabels } from "../data/labels.js?v=confidence-dial-11";
 
 export function TodayView(state) {
   const date = toISODate(new Date());
@@ -41,97 +41,131 @@ export function TodayView(state) {
 
   const moodValue = moodLabels[entry.mood] ? moodLabels[entry.mood] : "Sin dato";
   const bleedingValue = bleedingLabels[entry.bleeding] ? bleedingLabels[entry.bleeding] : "Sin dato";
+  const skinValue = skinLabels[entry.skin] ? skinLabels[entry.skin] : "Sin dato";
   const insightActions = insight.actions.slice(0, 2).map((action) => `<li>${action}</li>`).join("");
+
+  const logSummary = hasEntry ? getLogSummary(entry, moodValue, bleedingValue, skinValue) : "Toca para registrar";
+  const nextPeriodLine = estimate.nextPeriodInDays
+    ? `Próximo periodo · ~${estimate.nextPeriodInDays} día${estimate.nextPeriodInDays === 1 ? "" : "s"}`
+    : null;
+  const weekDays = getCalendarDays(state, 14);
+  const weekdayLetters = ["D", "L", "M", "M", "J", "V", "S"];
 
   return `
     <section class="view is-visible" data-view-panel="today">
-      <section class="today-hero">
-        <p class="micro-label">${dayLabel}</p>
-
-        <div class="confidence-dial ${dialModifier}" style="--dial-progress:${dialProgress};--tone:var(--phase-${estimate.phase})" role="img" aria-label="Día ${estimate.day ?? "sin estimar"} de ${cycleLength}, confianza ${estimate.confidence}">
-          <div class="dial-center">
-            <strong>${estimate.day ?? "–"}</strong>
-            <span>${estimate.day ? `de ${cycleLength}` : "sin datos"}</span>
+      <section class="today-hero-compact">
+        <div class="hero-top-row">
+          <div class="confidence-dial dial-sm ${dialModifier}" style="--dial-progress:${dialProgress};--tone:var(--phase-${estimate.phase})" role="img" aria-label="Día ${estimate.day ?? "sin estimar"} de ${cycleLength}, confianza ${estimate.confidence}">
+            <div class="dial-center">
+              <strong>${estimate.day ?? "–"}</strong>
+              <span>${estimate.day ? `de ${cycleLength}` : "sin datos"}</span>
+            </div>
+          </div>
+          <div class="hero-copy-main">
+            <p class="micro-label">${dayLabel}</p>
+            <h2 class="hero-headline-sm">${insight.title}</h2>
           </div>
         </div>
 
-        <h2 class="hero-headline">${insight.title}</h2>
-        <p class="hero-body">${insight.body}</p>
-        <p class="confidence-note">Confianza de esta lectura: <strong>${estimate.confidence}</strong></p>
-
-        <div class="focus-chips">
-          <span class="chip chip-inline">Ánimo: ${moodValue}</span>
-          <span class="chip chip-inline">Sangrado: ${bleedingValue}</span>
-          <span class="chip chip-inline">Local ${profileReady ? "activo" : "básico"}</span>
+        ${estimate.phase === "unknown"
+          ? ""
+          : `
+        <div class="hero-badges">
+          ${nextPeriodLine ? `<span class="hero-pill hero-pill-tone">${nextPeriodLine}</span>` : ""}
+          <span class="hero-pill">Confianza: ${estimate.confidence}</span>
         </div>
+        `}
+
+        <p class="hero-body-sm">${insight.body}</p>
       </section>
 
-      <section class="panel pocket-guidance" aria-label="Qué observar hoy">
+      <section class="pocket-guidance" aria-label="Qué observar hoy">
         <div class="guidance-head">
           <p class="micro-label">Lectura local</p>
-          <strong>${profileReady ? "Personal" : "Básica"}</strong>
+          <span class="guidance-tag">${profileReady ? "Personal" : "Básica"}</span>
         </div>
         <ul class="insight-list">
           ${insightActions}
         </ul>
-        <p class="privacy-line">Tus datos permanecen en este dispositivo.</p>
       </section>
 
-      ${profileReady
-        ? ""
-        : `
-        <section class="panel callout-panel" role="note">
-          <p><strong>Sin configuración completa.</strong> Puedes registrar hoy y ajustar tu perfil cuando quieras.</p>
-          <button class="button ghost" data-action="profile" type="button">Completar</button>
-        </section>
-      `}
+      <details class="panel log-toggle">
+        <summary class="log-summary">
+          <span class="log-summary-icon" aria-hidden="true">+</span>
+          <span class="log-summary-text">${hasEntry ? "Registro de hoy" : "Registrar hoy"}</span>
+          <span class="log-summary-meta">${logSummary}</span>
+        </summary>
 
-      <form class="panel daily-form" id="dailyForm">
-        <input name="entryDate" type="hidden" value="${date}" />
+        <form class="daily-form" id="dailyForm">
+          <input name="entryDate" type="hidden" value="${date}" />
 
-        <div class="section-title">
-          <h4>Registro rápido</h4>
-          <p>Treinta segundos. Sin juzgar.</p>
-        </div>
+          <div class="signal-wrap">
+            ${todaySignals.map((signal) => signalRow(signal)).join("")}
+          </div>
 
-        <div class="signal-wrap">
-          ${todaySignals.map((signal) => signalRow(signal)).join("")}
-        </div>
+          <fieldset class="choice-wrap" aria-label="Opciones de sangrado y estado emocional">
+            <legend>Opciones rápidas</legend>
+            <label class="option-field">
+              <p class="option-label">Sangrado</p>
+              <div class="option-row">
+                ${choice("bleeding", "none", "No", entry.bleeding || "none")}
+                ${choice("bleeding", "light", "Leve", entry.bleeding)}
+                ${choice("bleeding", "medium", "Medio", entry.bleeding)}
+                ${choice("bleeding", "heavy", "Abundante", entry.bleeding)}
+              </div>
+            </label>
 
-        <fieldset class="choice-wrap" aria-label="Opciones de sangrado y estado emocional">
-          <legend>Opciones rápidas</legend>
-          <label class="option-field">
-            <p class="option-label">Sangrado</p>
-            <div class="option-row">
-              ${choice("bleeding", "none", "No", entry.bleeding || "none")}
-              ${choice("bleeding", "light", "Leve", entry.bleeding)}
-              ${choice("bleeding", "medium", "Medio", entry.bleeding)}
-              ${choice("bleeding", "heavy", "Abundante", entry.bleeding)}
-            </div>
+            <label class="option-field">
+              <p class="option-label">Ánimo</p>
+              <div class="option-row mood-row">
+                ${choice("mood", "calm", "Tranquila", entry.mood)}
+                ${choice("mood", "sensitive", "Sensible", entry.mood)}
+                ${choice("mood", "irritable", "Irritable", entry.mood)}
+                ${choice("mood", "anxious", "Ansiosa", entry.mood)}
+                ${choice("mood", "sad", "Triste", entry.mood)}
+              </div>
+            </label>
+
+            <label class="option-field">
+              <p class="option-label">Piel</p>
+              <div class="option-row">
+                ${choice("skin", "none", "Sin cambios", entry.skin || "none")}
+                ${choice("skin", "breakout", "Brotes", entry.skin)}
+                ${choice("skin", "sensitive", "Sensible", entry.skin)}
+              </div>
+            </label>
+          </fieldset>
+
+          <label class="note-field">
+            <span>Nota privada</span>
+            <textarea name="note" rows="3" placeholder="¿Algo importante? Solo para ti.">${escapeHTML(entry.note || "")}</textarea>
           </label>
 
-          <label class="option-field">
-            <p class="option-label">Ánimo</p>
-            <div class="option-row mood-row">
-              ${choice("mood", "calm", "Tranquila", entry.mood)}
-              ${choice("mood", "sensitive", "Sensible", entry.mood)}
-              ${choice("mood", "irritable", "Irritable", entry.mood)}
-              ${choice("mood", "anxious", "Ansiosa", entry.mood)}
-              ${choice("mood", "sad", "Triste", entry.mood)}
-            </div>
-          </label>
-        </fieldset>
+          <div class="save-strip">
+            <p>${hasEntry ? "Guardado localmente para hoy." : "Se guarda solo en este dispositivo."}</p>
+            <button class="button primary" type="submit">${hasEntry ? "Actualizar" : "Guardar"}</button>
+          </div>
+        </form>
+      </details>
 
-        <label class="note-field">
-          <span>Nota privada</span>
-          <textarea name="note" rows="3" placeholder="¿Algo importante? Solo para ti.">${escapeHTML(entry.note || "")}</textarea>
-        </label>
-
-        <div class="save-strip">
-          <p>${hasEntry ? "Guardado localmente para hoy." : "Se guarda solo en este dispositivo."}</p>
-          <button class="button primary" type="submit">${hasEntry ? "Actualizar" : "Guardar"}</button>
+      <section class="week-strip" aria-label="Últimos 14 días">
+        <div class="week-strip-head">
+          <p class="micro-label">Últimos 14 días</p>
+          <span class="week-strip-hint">${Object.keys(state.entries).length} registro(s)</span>
         </div>
-      </form>
+        <div class="week-strip-grid">
+          ${weekDays
+            .map(
+              ({ date, entry: dayEntry }) => `
+            <div class="week-cell ${dayEntry ? "is-logged" : ""}">
+              <span class="week-cell-dow">${weekdayLetters[date.getDay()]}</span>
+              <span class="week-cell-num">${date.getDate()}</span>
+            </div>
+          `,
+            )
+            .join("")}
+        </div>
+      </section>
     </section>
   `;
 }
@@ -171,4 +205,14 @@ function getDialModifier(estimate) {
 function getDialProgress(estimate, cycleLength) {
   if (!estimate.day) return 6;
   return Math.min(100, Math.round((estimate.day / cycleLength) * 100));
+}
+
+function getLogSummary(entry, moodValue, bleedingValue, skinValue) {
+  const bits = [];
+  if (entry.pain >= 7) bits.push(`dolor alto (${entry.pain}/10)`);
+  if (entry.mood) bits.push(moodValue);
+  if (entry.skin && entry.skin !== "none") bits.push(`piel ${skinValue}`);
+  if (entry.bleeding && entry.bleeding !== "none") bits.push(bleedingValue);
+  if (entry.note) bits.push("nota guardada");
+  return bits.length ? bits.slice(0, 2).join(" · ") : "Registrado, sin detalle";
 }

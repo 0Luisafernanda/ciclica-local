@@ -1,6 +1,6 @@
-import { contextLabels } from "../data/labels.js";
-import { getEntries } from "./cycle.js";
-import { escapeHTML } from "../utils/html.js";
+import { contextLabels } from "../data/labels.js?v=confidence-dial-11";
+import { getEntries } from "./cycle.js?v=confidence-dial-11";
+import { escapeHTML } from "../utils/html.js?v=confidence-dial-11";
 
 export function buildReportHTML(state) {
   const entries = getEntries(state);

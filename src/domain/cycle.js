@@ -1,5 +1,5 @@
-import { addDays, clamp, daysBetween, parseISODate, startOfDay, toISODate } from "./date.js";
-import { moodLabels } from "../data/labels.js";
+import { addDays, clamp, daysBetween, parseISODate, startOfDay, toISODate } from "./date.js?v=confidence-dial-11";
+import { moodLabels, bleedingLabels, skinLabels } from "../data/labels.js?v=confidence-dial-11";
 
 export function getEntries(state) {
   return Object.values(state.entries).sort((a, b) => a.date.localeCompare(b.date));
@@ -10,6 +10,7 @@ export function getCycleEstimate(state, date = new Date()) {
     return {
       phase: "unknown",
       day: null,
+      nextPeriodInDays: null,
       headline: "Configura tu primer ciclo",
       summary: "Registra lo minimo y Ciclica empezara a detectar patrones sin sacar datos de tu computadora.",
       confidence: "Sin datos",
@@ -20,6 +21,7 @@ export function getCycleEstimate(state, date = new Date()) {
   const cycleLength = state.profile.cycleLength || 28;
   const diff = daysBetween(lastPeriod, date);
   const cycleDay = ((diff % cycleLength) + cycleLength) % cycleLength + 1;
+  const nextPeriodInDays = cycleLength - cycleDay + 1;
   const irregular = state.profile.regularity !== "regular";
   const contexts = state.profile.contexts || [];
   const confidence = irregular || contexts.includes("somp") ? "Media-baja" : "Media";
@@ -28,6 +30,7 @@ export function getCycleEstimate(state, date = new Date()) {
     return {
       phase: "menstrual",
       day: cycleDay,
+      nextPeriodInDays,
       headline: `Dia ${cycleDay}: fase menstrual probable`,
       summary: "Ventana de sangrado o recuperacion. Prioriza descanso real, calor local si ayuda y movimiento suave si se siente bien.",
       confidence,
@@ -38,6 +41,7 @@ export function getCycleEstimate(state, date = new Date()) {
     return {
       phase: "follicular",
       day: cycleDay,
+      nextPeriodInDays,
       headline: `Dia ${cycleDay}: fase folicular probable`,
       summary: "Puede ser una ventana de energia mas estable. Buen momento para planear, retomar fuerza y observar claridad mental.",
       confidence,
@@ -48,6 +52,7 @@ export function getCycleEstimate(state, date = new Date()) {
     return {
       phase: "ovulatory",
       day: cycleDay,
+      nextPeriodInDays,
       headline: `Dia ${cycleDay}: ventana ovulatoria posible`,
       summary: "Estimacion corporal, no anticoncepcion. Si no quieres foco en fertilidad, esta ventana queda solo como referencia privada.",
       confidence: contexts.includes("noFertility") ? "Oculta" : confidence,
@@ -57,6 +62,7 @@ export function getCycleEstimate(state, date = new Date()) {
   return {
     phase: "luteal",
     day: cycleDay,
+    nextPeriodInDays,
     headline: `Dia ${cycleDay}: fase lutea probable`,
     summary: "Algunas personas notan mas sensibilidad, hambre, sueno ligero o menor paciencia. Ciclica observa si esto tambien es cierto para ti.",
     confidence,
@@ -67,12 +73,22 @@ export function getInsight(state, dateISO = toISODate(new Date())) {
   const entries = getEntries(state);
   const entry = state.entries[dateISO];
   const estimate = getCycleEstimate(state, parseISODate(dateISO));
+  const cluster = getSymptomCluster(entry);
+  const lead = cluster ? `${cluster} ` : "";
 
   if (!state.profile) {
+    const actions = getPhaseActions("unknown", entry, []);
+    if (entry) {
+      return {
+        title: cluster ? "Un patron que vale la pena notar" : "Registro de hoy guardado",
+        body: `${lead}${describeEntry(entry)} Cuando quieras, configura tu ultimo periodo para que Ciclica empiece a estimar fases.`,
+        actions,
+      };
+    }
     return {
       title: "Empieza con tu ultimo periodo",
       body: "Con dos datos basicos, Ciclica puede estimar una fase probable sin asumir que tu cuerpo es un calendario perfecto.",
-      actions: ["Configura tu perfil local.", "Registra solo lo que recuerdes.", "Tus datos se quedan en este dispositivo."],
+      actions,
     };
   }
 
@@ -80,8 +96,8 @@ export function getInsight(state, dateISO = toISODate(new Date())) {
 
   if (entries.length < 3) {
     return {
-      title: "Linea base en construccion",
-      body: `${estimate.summary} Con ${3 - entries.length} registro(s) mas podre darte patrones menos genericos.`,
+      title: cluster ? "Un patron que vale la pena notar" : "Linea base en construccion",
+      body: `${lead}${estimate.summary} Con ${3 - entries.length} registro(s) mas podre darte patrones menos genericos.`,
       actions,
     };
   }
@@ -93,7 +109,7 @@ export function getInsight(state, dateISO = toISODate(new Date())) {
 
   return {
     title: estimate.headline,
-    body: `${estimate.summary} ${personalSignal} Esta lectura es una hipotesis local, no un diagnostico.`,
+    body: `${lead}${estimate.summary} ${personalSignal} Esta lectura es una hipotesis local, no un diagnostico.`,
     actions,
   };
 }
@@ -129,10 +145,10 @@ export function getIntensity(entry) {
   return clamp(bleedingScore + Math.ceil(symptomScore / 4), 1, 4);
 }
 
-export function getCalendarDays(state) {
+export function getCalendarDays(state, days = 28) {
   const today = startOfDay(new Date());
-  return Array.from({ length: 28 }, (_, index) => {
-    const date = addDays(today, index - 27);
+  return Array.from({ length: days }, (_, index) => {
+    const date = addDays(today, index - (days - 1));
     const iso = toISODate(date);
     return { date, iso, entry: state.entries[iso] };
   });
@@ -153,6 +169,33 @@ function getPhaseActions(phase, entry, contexts) {
   actions.unshift(...urgentActions);
   if (contexts.includes("noFertility")) actions.push("El foco de fertilidad esta minimizado por tu preferencia.");
   return actions.slice(0, 4);
+}
+
+function describeEntry(entry) {
+  const bits = [];
+  if (entry.pain >= 7) bits.push(`dolor alto (${entry.pain}/10)`);
+  else if (entry.pain > 0) bits.push(`dolor ${entry.pain}/10`);
+  if (entry.mood) bits.push(`animo ${moodLabels[entry.mood]}`);
+  if (entry.skin && entry.skin !== "none") bits.push(`piel ${skinLabels[entry.skin]}`);
+  if (entry.bleeding && entry.bleeding !== "none") bits.push(`sangrado ${bleedingLabels[entry.bleeding]}`);
+  if (entry.note) bits.push("una nota guardada");
+  if (!bits.length) return "Ya registraste hoy.";
+  return `Hoy registraste ${bits.join(", ")}.`;
+}
+
+const HARD_MOODS = ["irritable", "sensitive", "sad", "anxious"];
+
+function getSymptomCluster(entry) {
+  if (!entry) return null;
+  const signals = [
+    entry.pain >= 5,
+    HARD_MOODS.includes(entry.mood),
+    entry.skin === "breakout" || entry.skin === "sensitive",
+    entry.sleep <= 4,
+  ];
+  const hits = signals.filter(Boolean).length;
+  if (hits < 2) return null;
+  return "Dolor, animo dificil, piel reactiva y mal sueno tienden a moverse juntos por el mismo vaiven hormonal: no son fallas separadas tuyas, son parte de un mismo patron.";
 }
 
 function getMostCommon(values) {

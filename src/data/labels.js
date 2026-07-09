@@ -13,6 +13,12 @@ export const bleedingLabels = {
   heavy: "abundante",
 };
 
+export const skinLabels = {
+  none: "sin cambios",
+  breakout: "brotes",
+  sensitive: "sensible",
+};
+
 export const contextLabels = {
   somp: "SOMP/SOP",
   pmdd: "TDPM/PMDD",

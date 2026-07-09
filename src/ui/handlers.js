@@ -1,6 +1,6 @@
-import { App } from "../components/App.js?v=confidence-dial-3";
-import { buildPlainReport } from "../domain/report.js";
-import { clamp } from "../domain/date.js";
+import { App } from "../components/App.js?v=confidence-dial-11";
+import { buildPlainReport } from "../domain/report.js?v=confidence-dial-11";
+import { clamp } from "../domain/date.js?v=confidence-dial-11";
 
 export function bindApp(root, store) {
   let state = store.getState();
@@ -124,6 +124,7 @@ export function bindApp(root, store) {
             energy: Number(form.get("energy")),
             sleep: Number(form.get("sleep")),
             mood: form.get("mood"),
+            skin: form.get("skin"),
             note: String(form.get("note") || "").trim(),
             updatedAt: new Date().toISOString(),
           },

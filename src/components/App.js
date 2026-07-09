@@ -1,12 +1,12 @@
-import { views, moreView } from "../data/labels.js?v=confidence-dial-3";
-import { Shell } from "./Shell.js?v=confidence-dial-3";
-import { TodayView } from "./TodayView.js?v=confidence-dial-3";
-import { MoreView } from "./MoreView.js?v=confidence-dial-3";
-import { PatternsView } from "./PatternsView.js?v=confidence-dial-3";
-import { ConsultView } from "./ConsultView.js?v=confidence-dial-3";
-import { LibraryView } from "./LibraryView.js?v=confidence-dial-3";
-import { ProfileModal } from "./ProfileModal.js?v=confidence-dial-3";
-import { getCycleEstimate } from "../domain/cycle.js?v=confidence-dial-3";
+import { views, moreView } from "../data/labels.js?v=confidence-dial-11";
+import { Shell } from "./Shell.js?v=confidence-dial-11";
+import { TodayView } from "./TodayView.js?v=confidence-dial-11";
+import { MoreView } from "./MoreView.js?v=confidence-dial-11";
+import { PatternsView } from "./PatternsView.js?v=confidence-dial-11";
+import { ConsultView } from "./ConsultView.js?v=confidence-dial-11";
+import { LibraryView } from "./LibraryView.js?v=confidence-dial-11";
+import { ProfileModal } from "./ProfileModal.js?v=confidence-dial-11";
+import { getCycleEstimate } from "../domain/cycle.js?v=confidence-dial-11";
 
 export function App(state) {
   const active = state.activeView || "today";
