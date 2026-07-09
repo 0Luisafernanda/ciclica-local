@@ -1,7 +1,7 @@
-import { getInsight, getCycleEstimate, getCalendarDays } from "../domain/cycle.js?v=confidence-dial-11";
-import { toISODate } from "../domain/date.js?v=confidence-dial-11";
-import { escapeHTML } from "../utils/html.js?v=confidence-dial-11";
-import { bleedingLabels, moodLabels, skinLabels } from "../data/labels.js?v=confidence-dial-11";
+import { getInsight, getCycleEstimate, getCalendarDays } from "../domain/cycle.js?v=aqua-base-4";
+import { toISODate } from "../domain/date.js?v=aqua-base-4";
+import { escapeHTML } from "../utils/html.js?v=aqua-base-4";
+import { bleedingLabels, moodLabels, skinLabels } from "../data/labels.js?v=aqua-base-4";
 
 export function TodayView(state) {
   const date = toISODate(new Date());
@@ -14,6 +14,7 @@ export function TodayView(state) {
   const cycleLength = state.profile?.cycleLength || 28;
   const dialModifier = getDialModifier(estimate);
   const dialProgress = getDialProgress(estimate, cycleLength);
+  const phaseLabel = getPhaseLabel(estimate.phase, estimate, cycleLength);
 
   const todaySignals = [
     {
@@ -42,18 +43,18 @@ export function TodayView(state) {
   const moodValue = moodLabels[entry.mood] ? moodLabels[entry.mood] : "Sin dato";
   const bleedingValue = bleedingLabels[entry.bleeding] ? bleedingLabels[entry.bleeding] : "Sin dato";
   const skinValue = skinLabels[entry.skin] ? skinLabels[entry.skin] : "Sin dato";
-  const insightActions = insight.actions.slice(0, 2).map((action) => `<li>${action}</li>`).join("");
-
+  const insightActions = insight.actions.slice(0, 3);
+  const guidanceCards = getGuidanceCards(estimate.phase, insightActions);
   const logSummary = hasEntry ? getLogSummary(entry, moodValue, bleedingValue, skinValue) : "Toca para registrar";
   const nextPeriodLine = estimate.nextPeriodInDays
     ? `Próximo periodo · ~${estimate.nextPeriodInDays} día${estimate.nextPeriodInDays === 1 ? "" : "s"}`
-    : null;
+    : "Empieza con lo mínimo y Ciclica aprenderá contigo";
   const weekDays = getCalendarDays(state, 14);
   const weekdayLetters = ["D", "L", "M", "M", "J", "V", "S"];
 
   return `
-    <section class="view is-visible" data-view-panel="today">
-      <section class="today-hero-compact">
+    <section class="view is-visible today-view" data-view-panel="today">
+      <section class="today-hero-compact panel hero-card">
         <div class="hero-top-row">
           <div class="confidence-dial dial-sm ${dialModifier}" style="--dial-progress:${dialProgress};--tone:var(--phase-${estimate.phase})" role="img" aria-label="Día ${estimate.day ?? "sin estimar"} de ${cycleLength}, confianza ${estimate.confidence}">
             <div class="dial-center">
@@ -62,31 +63,35 @@ export function TodayView(state) {
             </div>
           </div>
           <div class="hero-copy-main">
-            <p class="micro-label">${dayLabel}</p>
-            <h2 class="hero-headline-sm">${insight.title}</h2>
+            <p class="micro-label">Hoy · ${dayLabel}</p>
+            <h2 class="hero-headline-sm">${phaseLabel}</h2>
+            <p class="hero-kicker">${nextPeriodLine}</p>
           </div>
         </div>
 
-        ${estimate.phase === "unknown"
-          ? ""
-          : `
         <div class="hero-badges">
-          ${nextPeriodLine ? `<span class="hero-pill hero-pill-tone">${nextPeriodLine}</span>` : ""}
-          <span class="hero-pill">Confianza: ${estimate.confidence}</span>
+          <span class="hero-pill hero-pill-tone">Privado · local</span>
+          <span class="hero-pill">${estimate.confidence}</span>
+          ${profileReady ? `<span class="hero-pill">Perfil listo</span>` : `<span class="hero-pill">Empieza sin explicar nada</span>`}
         </div>
-        `}
 
-        <p class="hero-body-sm">${insight.body}</p>
+        <div class="hero-body-lines">
+          ${insight.lines.map((line) => `<p class="hero-body-sm">${line}</p>`).join("")}
+        </div>
       </section>
 
-      <section class="pocket-guidance" aria-label="Qué observar hoy">
+      <section class="pocket-guidance panel" aria-label="Qué observar hoy">
         <div class="guidance-head">
-          <p class="micro-label">Lectura local</p>
-          <span class="guidance-tag">${profileReady ? "Personal" : "Básica"}</span>
+          <div>
+            <p class="micro-label">Para hoy</p>
+            <h3 class="guidance-title">Lectura local</h3>
+          </div>
+          <span class="guidance-tag">${profileReady ? "Personal" : "Básico"}</span>
         </div>
-        <ul class="insight-list">
-          ${insightActions}
+        <ul class="insight-cards">
+          ${guidanceCards}
         </ul>
+        <p class="guidance-footnote">No es consejo médico · todo queda en este dispositivo</p>
       </section>
 
       <details class="panel log-toggle">
@@ -166,6 +171,11 @@ export function TodayView(state) {
             .join("")}
         </div>
       </section>
+
+      <footer class="privacy-footer">
+        <span class="privacy-left"><span aria-hidden="true">🔒</span> On-device · private</span>
+        <span class="privacy-right">Open source</span>
+      </footer>
     </section>
   `;
 }
@@ -205,6 +215,61 @@ function getDialModifier(estimate) {
 function getDialProgress(estimate, cycleLength) {
   if (!estimate.day) return 6;
   return Math.min(100, Math.round((estimate.day / cycleLength) * 100));
+}
+
+function getPhaseLabel(phase, estimate, cycleLength) {
+  const labels = {
+    unknown: "Empieza con tu último periodo",
+    menstrual: `Fase menstrual · día ${estimate.day ?? 1}/${cycleLength}`,
+    follicular: `Fase folicular · día ${estimate.day ?? 1}/${cycleLength}`,
+    ovulatory: `Ventana ovulatoria · día ${estimate.day ?? 1}/${cycleLength}`,
+    luteal: `Fase lútea · día ${estimate.day ?? 1}/${cycleLength}`,
+  };
+  return labels[phase] || labels.unknown;
+}
+
+function getGuidanceCards(phase, actions) {
+  const cardMap = {
+    unknown: [
+      ["Empieza sin explicar tu cuerpo", actions[0] || "Configura lo mínimo y deja que Ciclica aprenda contigo."],
+      ["Registra hoy", actions[1] || "Dolor, energía y ánimo bastan para empezar."],
+      ["Hazlo privado", actions[2] || "Tus datos quedan en este dispositivo."],
+    ],
+    menstrual: [
+      ["Baja la exigencia", actions[0] || "Si el dolor o el cansancio suben, recorta un poco la agenda."],
+      ["Prioriza cuerpo", actions[1] || "Come, hidrátate y mantén movimiento suave si te ayuda."],
+      ["Anota lo fuerte", actions[2] || "Si hay dolor alto o sangrado abundante, vale la pena llevarlo a consulta."],
+    ],
+    follicular: [
+      ["Usa la energía", actions[0] || "Puede ser una ventana buena para tareas de foco."],
+      ["Retoma fuerza", actions[1] || "Prueba movimientos más intensos si te sienta bien."],
+      ["Observa claridad", actions[2] || "Nota si el ánimo o la piel cambian de forma consistente."],
+    ],
+    ovulatory: [
+      ["Ventana estimada", actions[0] || "Tómalo como una lectura, no como anticoncepción."],
+      ["Registra cambios", actions[1] || "Si notas flujo, dolor o energía distinta, déjalo escrito."],
+      ["Interprétalo con cautela", actions[2] || "Con ciclos irregulares o SOMP/SOP, la lectura se vuelve más flexible."],
+    ],
+    luteal: [
+      ["Protege tu energía", actions[0] || "Menos fricción ayuda cuando aparecen sensibilidad o cansancio."],
+      ["Reduce ruido", actions[1] || "Sueño estable y comidas más regulares suelen ayudar a sentirte mejor."],
+      ["Mira los repetidos", actions[2] || "Si algo vuelve cada ciclo, anótalo para reconocer el patrón."],
+    ],
+  };
+
+  return (cardMap[phase] || cardMap.unknown)
+    .map(
+      ([title, body], index) => `
+        <li class="insight-card">
+          <span class="insight-card-icon" aria-hidden="true">${index + 1}</span>
+          <div>
+            <strong>${title}</strong>
+            <p>${body}</p>
+          </div>
+        </li>
+      `,
+    )
+    .join("");
 }
 
 function getLogSummary(entry, moodValue, bleedingValue, skinValue) {

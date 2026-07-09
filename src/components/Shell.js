@@ -9,7 +9,7 @@ function getSectionHint(active) {
 
 const SECONDARY_VIEWS = ["patterns", "consult", "library"];
 
-export function Shell({ state, active, activeLabel, estimate, content, modal }) {
+export function Shell({ state, active, activeLabel, estimate, content, modal, aiModal }) {
   const phaseClass = estimate.phase || "unknown";
   const isSecondary = SECONDARY_VIEWS.includes(active);
   const moreActive = active === "more" || isSecondary;
@@ -23,14 +23,14 @@ export function Shell({ state, active, activeLabel, estimate, content, modal }) 
             <p class="brand-mark" aria-hidden="true">◐</p>
             <div>
               <h1>Ciclica</h1>
-              <p class="brand-sub">Local + privado</p>
+              <p class="brand-sub">On-device · privado</p>
             </div>
           </div>
 
           <div class="top-actions" aria-label="Acciones">
-            <button class="icon-action" data-action="export" type="button" aria-label="Exportar datos">⇩</button>
-            <button class="icon-action" data-action="profile" type="button" aria-label="Ajustes">⚙︎</button>
-            <button class="icon-action danger-action" data-action="reset-data" type="button" aria-label="Borrar datos locales">⌫</button>
+            <button class="icon-action" data-action="open-menu" type="button" aria-label="Menú">
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="4" cy="10" r="1.7" fill="currentColor"/><circle cx="10" cy="10" r="1.7" fill="currentColor"/><circle cx="16" cy="10" r="1.7" fill="currentColor"/></svg>
+            </button>
           </div>
         </header>
 
@@ -52,14 +52,24 @@ export function Shell({ state, active, activeLabel, estimate, content, modal }) 
             <span>Hoy</span>
           </button>
           <button class="tab-item ${moreActive ? "is-active" : ""}" data-action="view" data-view="more" type="button" aria-label="Más">
-            <span class="tab-icon" aria-hidden="true">•••</span>
+            <span class="tab-icon" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="4" cy="10" r="1.7" fill="currentColor"/><circle cx="10" cy="10" r="1.7" fill="currentColor"/><circle cx="16" cy="10" r="1.7" fill="currentColor"/></svg>
+            </span>
             <span>Más</span>
           </button>
         </nav>
         </main>
       </div>
 
+      <dialog class="menu-sheet" id="menuModal">
+        <button class="menu-row" data-action="profile" type="button">Perfil y ciclo</button>
+        <button class="menu-row" data-action="ai-config" type="button">Configurar IA</button>
+        <button class="menu-row" data-action="export" type="button">Exportar datos</button>
+        <button class="menu-row menu-row-danger" data-action="reset-data" type="button">Borrar datos</button>
+      </dialog>
+
       ${modal}
+      ${aiModal}
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </div>
   `;

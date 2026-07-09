@@ -1,4 +1,4 @@
-import { buildReportHTML } from "../domain/report.js?v=confidence-dial-11";
+import { buildReportHTML } from "../domain/report.js?v=aqua-base-4";
 
 export function ConsultView(state) {
   return `

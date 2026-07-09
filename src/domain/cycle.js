@@ -1,5 +1,5 @@
-import { addDays, clamp, daysBetween, parseISODate, startOfDay, toISODate } from "./date.js?v=confidence-dial-11";
-import { moodLabels, bleedingLabels, skinLabels } from "../data/labels.js?v=confidence-dial-11";
+import { addDays, clamp, daysBetween, parseISODate, startOfDay, toISODate } from "./date.js?v=aqua-base-4";
+import { moodLabels, bleedingLabels, skinLabels } from "../data/labels.js?v=aqua-base-4";
 
 export function getEntries(state) {
   return Object.values(state.entries).sort((a, b) => a.date.localeCompare(b.date));
@@ -74,20 +74,20 @@ export function getInsight(state, dateISO = toISODate(new Date())) {
   const entry = state.entries[dateISO];
   const estimate = getCycleEstimate(state, parseISODate(dateISO));
   const cluster = getSymptomCluster(entry);
-  const lead = cluster ? `${cluster} ` : "";
 
   if (!state.profile) {
     const actions = getPhaseActions("unknown", entry, []);
     if (entry) {
+      const lines = [cluster, describeEntry(entry), "Configura tu ultimo periodo cuando quieras para que Ciclica empiece a estimar fases."].filter(Boolean);
       return {
         title: cluster ? "Un patron que vale la pena notar" : "Registro de hoy guardado",
-        body: `${lead}${describeEntry(entry)} Cuando quieras, configura tu ultimo periodo para que Ciclica empiece a estimar fases.`,
+        lines,
         actions,
       };
     }
     return {
       title: "Empieza con tu ultimo periodo",
-      body: "Con dos datos basicos, Ciclica puede estimar una fase probable sin asumir que tu cuerpo es un calendario perfecto.",
+      lines: ["Con dos datos basicos, Ciclica puede estimar una fase probable sin asumir que tu cuerpo es un calendario perfecto."],
       actions,
     };
   }
@@ -95,9 +95,10 @@ export function getInsight(state, dateISO = toISODate(new Date())) {
   const actions = getPhaseActions(estimate.phase, entry, state.profile.contexts || []);
 
   if (entries.length < 3) {
+    const lines = [cluster, estimate.summary, `Con ${3 - entries.length} registro(s) mas podre darte patrones menos genericos.`].filter(Boolean);
     return {
       title: cluster ? "Un patron que vale la pena notar" : "Linea base en construccion",
-      body: `${lead}${estimate.summary} Con ${3 - entries.length} registro(s) mas podre darte patrones menos genericos.`,
+      lines,
       actions,
     };
   }
@@ -107,9 +108,11 @@ export function getInsight(state, dateISO = toISODate(new Date())) {
     ? `Tu animo mas repetido ultimamente ha sido ${moodLabels[repeatedMood]}.`
     : "Aun no hay un patron emocional dominante.";
 
+  const lines = [cluster, estimate.summary, personalSignal, "Esta lectura es una hipotesis local, no un diagnostico."].filter(Boolean);
+
   return {
     title: estimate.headline,
-    body: `${lead}${estimate.summary} ${personalSignal} Esta lectura es una hipotesis local, no un diagnostico.`,
+    lines,
     actions,
   };
 }

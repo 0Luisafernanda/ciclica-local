@@ -1,6 +1,6 @@
-import { App } from "./components/App.js?v=confidence-dial-11";
-import { createStore } from "./state/store.js?v=confidence-dial-11";
-import { bindApp } from "./ui/handlers.js?v=confidence-dial-11";
+import { App } from "./components/App.js?v=aqua-base-4";
+import { createStore } from "./state/store.js?v=aqua-base-4";
+import { bindApp } from "./ui/handlers.js?v=aqua-base-4";
 
 const store = createStore();
 const root = document.querySelector("#app");

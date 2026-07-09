@@ -28,11 +28,11 @@ const updates = [
     review: "Pendiente textos de seguridad.",
   },
   {
-    status: "Plan",
-    title: "Lectura de notas con IA local",
-    scope: "Modelo on-device para sintetizar notas propias",
-    behavior: "Probado con transformers.js + WebGPU, 100% offline y verificado sin salida de datos.",
-    review: "Modelo chico (0.5B) es inconsistente entre corridas; modelo mediano (1.5B) crashea en el navegador. Sin base confiable todavia para shippear.",
+    status: "Aplicado",
+    title: "IA opcional: Ollama u OpenAI",
+    scope: "Configuracion en el icono ◈ del header",
+    behavior: "Apagada por defecto. Ollama corre en tu maquina y no sale de tu red. OpenAI es la unica excepcion real a 'sin nube': tus registros viajan a un tercero si lo elegis a proposito.",
+    review: "El intento anterior (modelo on-device en el navegador, WebGPU) quedo descartado: inconsistente o crasheaba. Este camino usa un proveedor real en vez de forzar un modelo chico en el navegador.",
   },
 ];
 

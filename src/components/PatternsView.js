@@ -1,5 +1,5 @@
-import { bleedingLabels, moodLabels } from "../data/labels.js?v=confidence-dial-11";
-import { getCalendarDays, getFindings, getIntensity } from "../domain/cycle.js?v=confidence-dial-11";
+import { bleedingLabels, moodLabels } from "../data/labels.js?v=aqua-base-4";
+import { getCalendarDays, getFindings, getIntensity } from "../domain/cycle.js?v=aqua-base-4";
 
 export function PatternsView(state) {
   const days = getCalendarDays(state);

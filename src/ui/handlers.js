@@ -1,6 +1,7 @@
-import { App } from "../components/App.js?v=confidence-dial-11";
-import { buildPlainReport } from "../domain/report.js?v=confidence-dial-11";
-import { clamp } from "../domain/date.js?v=confidence-dial-11";
+import { App } from "../components/App.js?v=aqua-base-4";
+import { buildPlainReport } from "../domain/report.js?v=aqua-base-4";
+import { clamp } from "../domain/date.js?v=aqua-base-4";
+import { listOllamaModels, generateWithOllama, generateWithOpenAI } from "../services/aiProvider.js?v=aqua-base-4";
 
 export function bindApp(root, store) {
   let state = store.getState();
@@ -20,6 +21,7 @@ export function bindApp(root, store) {
 
     const profileModal = root.querySelector("#profileModal");
     const profileForm = root.querySelector("#profileForm");
+    const menuModal = root.querySelector("#menuModal");
 
     if (!state.profile && !state.onboardingDismissed && profileModal && !profileModal.open) {
       try {
@@ -29,8 +31,17 @@ export function bindApp(root, store) {
       }
     }
 
+    root.querySelector("[data-action='open-menu']")?.addEventListener("click", () => {
+      try {
+        menuModal?.showModal();
+      } catch {
+        menuModal?.setAttribute("open", "");
+      }
+    });
+
     root.querySelectorAll("[data-action='profile']").forEach((button) => {
       button.addEventListener("click", () => {
+        menuModal?.close();
         profileForm?.setAttribute("data-step", "0");
         updateOnboardingStep(profileForm);
         profileModal?.showModal();
@@ -143,6 +154,7 @@ export function bindApp(root, store) {
     });
 
     root.querySelector("[data-action='export']")?.addEventListener("click", () => {
+      menuModal?.close();
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -154,10 +166,119 @@ export function bindApp(root, store) {
     });
 
     root.querySelector("[data-action='reset-data']")?.addEventListener("click", () => {
+      menuModal?.close();
       const confirmed = window.confirm("Esto borra tu perfil y registros de este dispositivo. Si quieres conservar una copia, exporta antes. ¿Borrar datos locales?");
       if (!confirmed) return;
       store.reset();
       toast(root, "Datos locales borrados.");
+    });
+
+    const aiModal = root.querySelector("#aiModal");
+    const aiForm = root.querySelector("#aiForm");
+
+    root.querySelector("[data-action='ai-config']")?.addEventListener("click", () => {
+      menuModal?.close();
+      updateAiProviderPanels(aiForm);
+      try {
+        aiModal?.showModal();
+      } catch {
+        aiModal?.setAttribute("open", "");
+      }
+    });
+
+    root.querySelector("[data-action='close-ai-modal']")?.addEventListener("click", () => {
+      aiModal?.close();
+    });
+
+    updateAiProviderPanels(aiForm);
+    root.querySelectorAll("input[name='aiProvider']").forEach((input) => {
+      input.addEventListener("change", () => updateAiProviderPanels(aiForm));
+    });
+
+    root.querySelector("[data-action='ollama-list-models']")?.addEventListener("click", async (event) => {
+      const button = event.currentTarget;
+      const resultEl = aiForm?.querySelector("[data-test-result='ollama']");
+      const urlInput = aiForm?.querySelector("input[name='ollamaUrl']");
+      const modelInput = aiForm?.querySelector("input[name='ollamaModel']");
+      const datalist = aiForm?.querySelector("#ollamaModelsList");
+      button.disabled = true;
+      if (resultEl) resultEl.textContent = "Buscando modelos...";
+      try {
+        const models = await listOllamaModels(urlInput?.value);
+        if (datalist) datalist.innerHTML = models.map((name) => `<option value="${name}"></option>`).join("");
+        if (resultEl) {
+          resultEl.textContent = models.length
+            ? `Encontrados: ${models.join(", ")}`
+            : "Ollama respondio pero no tiene modelos instalados (ollama pull <modelo>).";
+        }
+        if (models.length && modelInput && !modelInput.value) modelInput.value = models[0];
+      } catch (error) {
+        if (resultEl) resultEl.textContent = `No se pudo conectar: ${error.message}`;
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    root.querySelector("[data-action='test-ollama']")?.addEventListener("click", async (event) => {
+      const button = event.currentTarget;
+      const resultEl = aiForm?.querySelector("[data-test-result='ollama']");
+      const urlInput = aiForm?.querySelector("input[name='ollamaUrl']");
+      const modelInput = aiForm?.querySelector("input[name='ollamaModel']");
+      button.disabled = true;
+      if (resultEl) resultEl.textContent = "Probando...";
+      try {
+        const reply = await generateWithOllama(
+          { url: urlInput?.value, model: modelInput?.value },
+          [{ role: "user", content: "Respondeme con la palabra: ok" }],
+        );
+        if (resultEl) resultEl.textContent = `Conexion ok. Respuesta: "${reply.slice(0, 80)}"`;
+      } catch (error) {
+        if (resultEl) resultEl.textContent = `Fallo la prueba: ${error.message}`;
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    root.querySelector("[data-action='test-openai']")?.addEventListener("click", async (event) => {
+      const button = event.currentTarget;
+      const resultEl = aiForm?.querySelector("[data-test-result='openai']");
+      const keyInput = aiForm?.querySelector("input[name='openaiKey']");
+      const modelSelect = aiForm?.querySelector("select[name='openaiModel']");
+      button.disabled = true;
+      if (resultEl) resultEl.textContent = "Probando...";
+      try {
+        const reply = await generateWithOpenAI(
+          { apiKey: keyInput?.value, model: modelSelect?.value },
+          [{ role: "user", content: "Respondeme con la palabra: ok" }],
+        );
+        if (resultEl) resultEl.textContent = `Conexion ok. Respuesta: "${reply.slice(0, 80)}"`;
+      } catch (error) {
+        if (resultEl) resultEl.textContent = `Fallo la prueba: ${error.message}`;
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    aiForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      const provider = form.get("aiProvider") || null;
+      if (aiModal?.open) aiModal.close();
+      store.setState((current) => ({
+        ...current,
+        aiConfig: {
+          provider,
+          ollama: {
+            url: form.get("ollamaUrl") || "http://localhost:11434",
+            model: form.get("ollamaModel") || "",
+          },
+          openai: {
+            apiKey: form.get("openaiKey") || "",
+            model: form.get("openaiModel") || "gpt-4o-mini",
+          },
+        },
+      }));
+      toast(root, provider ? "Proveedor de IA guardado." : "IA desactivada.");
     });
   }
 }
@@ -193,4 +314,12 @@ function canAdvance(form, step) {
   if (!form) return false;
   if (step === 2) return form.elements.cycleLength.reportValidity();
   return true;
+}
+
+function updateAiProviderPanels(form) {
+  if (!form) return;
+  const selected = form.querySelector("input[name='aiProvider']:checked")?.value || "";
+  form.querySelectorAll("[data-provider-panel]").forEach((panel) => {
+    panel.classList.toggle("is-active", panel.dataset.providerPanel === selected);
+  });
 }

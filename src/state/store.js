@@ -5,6 +5,11 @@ const defaultState = {
   profile: null,
   entries: {},
   onboardingDismissed: false,
+  aiConfig: {
+    provider: null,
+    ollama: { url: "http://localhost:11434", model: "" },
+    openai: { apiKey: "", model: "gpt-4o-mini" },
+  },
 };
 
 export function createStore() {

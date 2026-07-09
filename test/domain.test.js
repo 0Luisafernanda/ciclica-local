@@ -43,7 +43,8 @@ test("insight flags high pain and poor sleep before generic phase actions", () =
 
   assert.match(insight.actions[0], /Dolor alto hoy/);
   assert.match(insight.actions[1], /Sueno bajo hoy/);
-  assert.match(insight.body, /hipotesis local, no un diagnostico/i);
+  assert.ok(Array.isArray(insight.lines));
+  assert.match(insight.lines.at(-1), /hipotesis local, no un diagnostico/i);
 });
 
 test("clustered symptoms without a profile get a connecting insight, not a flat fact list", () => {
@@ -57,10 +58,12 @@ test("clustered symptoms without a profile get a connecting insight, not a flat 
   };
 
   const insight = getInsight(state, "2026-06-03");
+  const joined = insight.lines.join(" ");
 
   assert.equal(insight.title, "Un patron que vale la pena notar");
-  assert.match(insight.body, /mismo vaiven hormonal/i);
-  assert.match(insight.body, /dolor alto \(7\/10\)/);
+  assert.equal(insight.lines.length, 3);
+  assert.match(joined, /mismo vaiven hormonal/i);
+  assert.match(joined, /dolor alto \(7\/10\)/);
 });
 
 test("a single mild symptom does not trigger the cluster insight", () => {
@@ -76,7 +79,7 @@ test("a single mild symptom does not trigger the cluster insight", () => {
   const insight = getInsight(state, "2026-06-03");
 
   assert.equal(insight.title, "Registro de hoy guardado");
-  assert.doesNotMatch(insight.body, /vaiven hormonal/i);
+  assert.doesNotMatch(insight.lines.join(" "), /vaiven hormonal/i);
 });
 
 test("findings keep clinical language cautious for SOMP/SOP and high pain", () => {
