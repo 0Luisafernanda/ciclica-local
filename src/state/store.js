@@ -10,6 +10,7 @@ const defaultState = {
     ollama: { url: "http://localhost:11434", model: "" },
     openai: { apiKey: "", model: "gpt-4o-mini" },
   },
+  aiRecs: null,
 };
 
 export function createStore() {

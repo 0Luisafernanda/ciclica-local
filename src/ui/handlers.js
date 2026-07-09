@@ -1,7 +1,8 @@
-import { App } from "../components/App.js?v=aqua-base-4";
-import { buildPlainReport } from "../domain/report.js?v=aqua-base-4";
-import { clamp } from "../domain/date.js?v=aqua-base-4";
-import { listOllamaModels, generateWithOllama, generateWithOpenAI } from "../services/aiProvider.js?v=aqua-base-4";
+import { App } from "../components/App.js?v=aqua-base-7";
+import { buildPlainReport } from "../domain/report.js?v=aqua-base-7";
+import { clamp, toISODate } from "../domain/date.js?v=aqua-base-7";
+import { listOllamaModels, generateWithOllama, generateWithOpenAI, generateWithAI } from "../services/aiProvider.js?v=aqua-base-7";
+import { buildRecommendationMessages, parseRecommendations } from "../services/recommendations.js?v=aqua-base-7";
 
 export function bindApp(root, store) {
   let state = store.getState();
@@ -13,6 +14,28 @@ export function bindApp(root, store) {
   });
 
   attach();
+
+  async function generateRecs() {
+    const current = store.getState();
+    const provider = current.aiConfig?.provider;
+    if (!provider) return;
+    const dateISO = toISODate(new Date());
+    store.setState((s) => ({ ...s, aiRecs: { date: dateISO, status: "loading", lines: [] } }));
+    try {
+      const messages = buildRecommendationMessages(current, dateISO);
+      const text = await generateWithAI(current.aiConfig, messages);
+      const lines = parseRecommendations(text);
+      if (!lines.length) throw new Error("La respuesta llego vacia.");
+      store.setState((s) => ({ ...s, aiRecs: { date: dateISO, status: "done", lines, provider } }));
+    } catch (error) {
+      const friendly = /failed to fetch|networkerror/i.test(error.message)
+        ? provider === "ollama"
+          ? "no encontre Ollama corriendo en esa direccion"
+          : "no pude conectar con el proveedor"
+        : error.message;
+      store.setState((s) => ({ ...s, aiRecs: { date: dateISO, status: "error", error: friendly, lines: [] } }));
+    }
+  }
 
   function attach() {
     root.querySelectorAll("[data-action='view']").forEach((button) => {
@@ -31,12 +54,20 @@ export function bindApp(root, store) {
       }
     }
 
-    root.querySelector("[data-action='open-menu']")?.addEventListener("click", () => {
+    root.querySelector("[data-action='open-menu']")?.addEventListener("click", (event) => {
+      if (!menuModal) return;
       try {
-        menuModal?.showModal();
+        menuModal.showModal();
       } catch {
-        menuModal?.setAttribute("open", "");
+        menuModal.setAttribute("open", "");
       }
+      const anchor = event.currentTarget.getBoundingClientRect();
+      menuModal.style.top = `${anchor.bottom + 8}px`;
+      menuModal.style.left = `${Math.max(12, anchor.right - menuModal.offsetWidth)}px`;
+    });
+
+    menuModal?.addEventListener("click", (event) => {
+      if (event.target === menuModal) menuModal.close();
     });
 
     root.querySelectorAll("[data-action='profile']").forEach((button) => {
@@ -142,6 +173,11 @@ export function bindApp(root, store) {
         },
       }));
       toast(root, "Entrada guardada en este dispositivo.");
+      if (store.getState().aiConfig?.provider) generateRecs();
+    });
+
+    root.querySelectorAll("[data-action='generate-recs']").forEach((button) => {
+      button.addEventListener("click", generateRecs);
     });
 
     root.querySelector("[data-action='copy-report']")?.addEventListener("click", async () => {
@@ -176,14 +212,16 @@ export function bindApp(root, store) {
     const aiModal = root.querySelector("#aiModal");
     const aiForm = root.querySelector("#aiForm");
 
-    root.querySelector("[data-action='ai-config']")?.addEventListener("click", () => {
-      menuModal?.close();
-      updateAiProviderPanels(aiForm);
-      try {
-        aiModal?.showModal();
-      } catch {
-        aiModal?.setAttribute("open", "");
-      }
+    root.querySelectorAll("[data-action='ai-config']").forEach((button) => {
+      button.addEventListener("click", () => {
+        menuModal?.close();
+        updateAiProviderPanels(aiForm);
+        try {
+          aiModal?.showModal();
+        } catch {
+          aiModal?.setAttribute("open", "");
+        }
+      });
     });
 
     root.querySelector("[data-action='close-ai-modal']")?.addEventListener("click", () => {

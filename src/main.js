@@ -1,6 +1,6 @@
-import { App } from "./components/App.js?v=aqua-base-4";
-import { createStore } from "./state/store.js?v=aqua-base-4";
-import { bindApp } from "./ui/handlers.js?v=aqua-base-4";
+import { App } from "./components/App.js?v=aqua-base-7";
+import { createStore } from "./state/store.js?v=aqua-base-7";
+import { bindApp } from "./ui/handlers.js?v=aqua-base-7";
 
 const store = createStore();
 const root = document.querySelector("#app");

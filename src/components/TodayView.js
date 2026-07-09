@@ -1,7 +1,7 @@
-import { getInsight, getCycleEstimate, getCalendarDays } from "../domain/cycle.js?v=aqua-base-4";
-import { toISODate } from "../domain/date.js?v=aqua-base-4";
-import { escapeHTML } from "../utils/html.js?v=aqua-base-4";
-import { bleedingLabels, moodLabels, skinLabels } from "../data/labels.js?v=aqua-base-4";
+import { getInsight, getCycleEstimate, getCalendarDays } from "../domain/cycle.js?v=aqua-base-7";
+import { toISODate } from "../domain/date.js?v=aqua-base-7";
+import { escapeHTML } from "../utils/html.js?v=aqua-base-7";
+import { bleedingLabels, moodLabels, skinLabels } from "../data/labels.js?v=aqua-base-7";
 
 export function TodayView(state) {
   const date = toISODate(new Date());
@@ -43,8 +43,7 @@ export function TodayView(state) {
   const moodValue = moodLabels[entry.mood] ? moodLabels[entry.mood] : "Sin dato";
   const bleedingValue = bleedingLabels[entry.bleeding] ? bleedingLabels[entry.bleeding] : "Sin dato";
   const skinValue = skinLabels[entry.skin] ? skinLabels[entry.skin] : "Sin dato";
-  const insightActions = insight.actions.slice(0, 3);
-  const guidanceCards = getGuidanceCards(estimate.phase, insightActions);
+  const recsContent = recsSection(state, insight, date, hasEntry);
   const logSummary = hasEntry ? getLogSummary(entry, moodValue, bleedingValue, skinValue) : "Toca para registrar";
   const nextPeriodLine = estimate.nextPeriodInDays
     ? `Próximo periodo · ~${estimate.nextPeriodInDays} día${estimate.nextPeriodInDays === 1 ? "" : "s"}`
@@ -69,32 +68,31 @@ export function TodayView(state) {
           </div>
         </div>
 
+        ${estimate.phase === "unknown" ? "" : `
         <div class="hero-badges">
-          <span class="hero-pill hero-pill-tone">Privado · local</span>
-          <span class="hero-pill">${estimate.confidence}</span>
-          ${profileReady ? `<span class="hero-pill">Perfil listo</span>` : `<span class="hero-pill">Empieza sin explicar nada</span>`}
+          <span class="hero-pill hero-pill-tone">Confianza ${estimate.confidence.toLowerCase()}</span>
         </div>
+        `}
 
         <div class="hero-body-lines">
           ${insight.lines.map((line) => `<p class="hero-body-sm">${line}</p>`).join("")}
         </div>
-      </section>
 
-      <section class="pocket-guidance panel" aria-label="Qué observar hoy">
-        <div class="guidance-head">
-          <div>
-            <p class="micro-label">Para hoy</p>
-            <h3 class="guidance-title">Lectura local</h3>
-          </div>
-          <span class="guidance-tag">${profileReady ? "Personal" : "Básico"}</span>
+        <div class="hero-actions">
+          <button class="button ${profileReady ? "ghost" : "primary"} hero-action" data-action="profile" type="button">
+            ${profileReady ? "Editar perfil local" : "Configurar lo mínimo"}
+          </button>
+          <button class="button ghost hero-action" data-action="open-log" type="button">
+            ${hasEntry ? "Actualizar hoy" : "Registrar hoy"}
+          </button>
         </div>
-        <ul class="insight-cards">
-          ${guidanceCards}
-        </ul>
-        <p class="guidance-footnote">No es consejo médico · todo queda en este dispositivo</p>
       </section>
 
-      <details class="panel log-toggle">
+      <section class="recs-block" aria-label="Recomendaciones">
+        ${recsContent}
+      </section>
+
+      <details class="panel log-toggle" id="todayLog">
         <summary class="log-summary">
           <span class="log-summary-icon" aria-hidden="true">+</span>
           <span class="log-summary-text">${hasEntry ? "Registro de hoy" : "Registrar hoy"}</span>
@@ -171,11 +169,6 @@ export function TodayView(state) {
             .join("")}
         </div>
       </section>
-
-      <footer class="privacy-footer">
-        <span class="privacy-left"><span aria-hidden="true">🔒</span> On-device · private</span>
-        <span class="privacy-right">Open source</span>
-      </footer>
     </section>
   `;
 }
@@ -228,48 +221,40 @@ function getPhaseLabel(phase, estimate, cycleLength) {
   return labels[phase] || labels.unknown;
 }
 
-function getGuidanceCards(phase, actions) {
-  const cardMap = {
-    unknown: [
-      ["Empieza sin explicar tu cuerpo", actions[0] || "Configura lo mínimo y deja que Ciclica aprenda contigo."],
-      ["Registra hoy", actions[1] || "Dolor, energía y ánimo bastan para empezar."],
-      ["Hazlo privado", actions[2] || "Tus datos quedan en este dispositivo."],
-    ],
-    menstrual: [
-      ["Baja la exigencia", actions[0] || "Si el dolor o el cansancio suben, recorta un poco la agenda."],
-      ["Prioriza cuerpo", actions[1] || "Come, hidrátate y mantén movimiento suave si te ayuda."],
-      ["Anota lo fuerte", actions[2] || "Si hay dolor alto o sangrado abundante, vale la pena llevarlo a consulta."],
-    ],
-    follicular: [
-      ["Usa la energía", actions[0] || "Puede ser una ventana buena para tareas de foco."],
-      ["Retoma fuerza", actions[1] || "Prueba movimientos más intensos si te sienta bien."],
-      ["Observa claridad", actions[2] || "Nota si el ánimo o la piel cambian de forma consistente."],
-    ],
-    ovulatory: [
-      ["Ventana estimada", actions[0] || "Tómalo como una lectura, no como anticoncepción."],
-      ["Registra cambios", actions[1] || "Si notas flujo, dolor o energía distinta, déjalo escrito."],
-      ["Interprétalo con cautela", actions[2] || "Con ciclos irregulares o SOMP/SOP, la lectura se vuelve más flexible."],
-    ],
-    luteal: [
-      ["Protege tu energía", actions[0] || "Menos fricción ayuda cuando aparecen sensibilidad o cansancio."],
-      ["Reduce ruido", actions[1] || "Sueño estable y comidas más regulares suelen ayudar a sentirte mejor."],
-      ["Mira los repetidos", actions[2] || "Si algo vuelve cada ciclo, anótalo para reconocer el patrón."],
-    ],
-  };
+function recsSection(state, insight, dateISO, hasEntry) {
+  const provider = state.aiConfig?.provider || null;
+  const recs = state.aiRecs && state.aiRecs.date === dateISO ? state.aiRecs : null;
 
-  return (cardMap[phase] || cardMap.unknown)
-    .map(
-      ([title, body], index) => `
-        <li class="insight-card">
-          <span class="insight-card-icon" aria-hidden="true">${index + 1}</span>
-          <div>
-            <strong>${title}</strong>
-            <p>${body}</p>
-          </div>
-        </li>
-      `,
-    )
-    .join("");
+  if (recs?.status === "loading") {
+    return `<p class="recs-status">Generando recomendaciones con tu registro…</p>`;
+  }
+
+  if (recs?.status === "done" && recs.lines.length) {
+    return `
+      <ul class="recs-list">${recs.lines.map((line) => `<li>${escapeHTML(line)}</li>`).join("")}</ul>
+      <div class="recs-foot">
+        <span class="recs-note">Generado con tus datos, no es consejo médico</span>
+        <button class="recs-action" data-action="generate-recs" type="button">Actualizar</button>
+      </div>
+    `;
+  }
+
+  if (recs?.status === "error") {
+    return `
+      <p class="recs-status">No pude generar recomendaciones: ${escapeHTML(recs.error || "error desconocido")}</p>
+      <button class="recs-action" data-action="generate-recs" type="button">Reintentar</button>
+    `;
+  }
+
+  const fallback = `<ul class="recs-list">${insight.actions.slice(0, 3).map((action) => `<li>${action}</li>`).join("")}</ul>`;
+
+  if (provider && hasEntry) {
+    return `${fallback}<button class="recs-action" data-action="generate-recs" type="button">Generar con mis datos</button>`;
+  }
+  if (!provider) {
+    return `${fallback}<button class="recs-action" data-action="ai-config" type="button">Activa IA para recomendaciones a tu medida</button>`;
+  }
+  return fallback;
 }
 
 function getLogSummary(entry, moodValue, bleedingValue, skinValue) {

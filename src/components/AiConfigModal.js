@@ -1,4 +1,4 @@
-import { escapeHTML } from "../utils/html.js?v=aqua-base-4";
+import { escapeHTML } from "../utils/html.js?v=aqua-base-7";
 
 export function AiConfigModal(state) {
   const ai = state.aiConfig || {};

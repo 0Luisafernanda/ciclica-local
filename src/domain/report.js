@@ -1,6 +1,6 @@
-import { contextLabels } from "../data/labels.js?v=aqua-base-4";
-import { getEntries } from "./cycle.js?v=aqua-base-4";
-import { escapeHTML } from "../utils/html.js?v=aqua-base-4";
+import { contextLabels } from "../data/labels.js?v=aqua-base-7";
+import { getEntries } from "./cycle.js?v=aqua-base-7";
+import { escapeHTML } from "../utils/html.js?v=aqua-base-7";
 
 export function buildReportHTML(state) {
   const entries = getEntries(state);
