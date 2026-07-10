@@ -29,8 +29,8 @@ export const contextLabels = {
 };
 
 export const views = [
-  { id: "today", label: "Hoy" },
-  { id: "patterns", label: "Patrones" },
+  { id: "now", label: "Ahora" },
+  { id: "learning", label: "Aprendizajes" },
   { id: "consult", label: "Consulta" },
   { id: "library", label: "Transparencia" },
 ];

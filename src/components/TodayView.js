@@ -1,7 +1,8 @@
-import { getInsight, getCycleEstimate, getCalendarDays } from "../domain/cycle.js?v=aqua-base-7";
-import { toISODate } from "../domain/date.js?v=aqua-base-7";
-import { escapeHTML } from "../utils/html.js?v=aqua-base-7";
-import { bleedingLabels, moodLabels, skinLabels } from "../data/labels.js?v=aqua-base-7";
+import { getInsight, getCycleEstimate, getCalendarDays } from "../domain/cycle.js?v=ciclica-now-1";
+import { toISODate } from "../domain/date.js?v=ciclica-now-1";
+import { escapeHTML } from "../utils/html.js?v=ciclica-now-1";
+import { bleedingLabels, moodLabels, skinLabels } from "../data/labels.js?v=ciclica-now-1";
+import { resolveAIProvider } from "../services/aiProvider.js?v=ciclica-now-1";
 
 export function TodayView(state) {
   const date = toISODate(new Date());
@@ -79,13 +80,14 @@ export function TodayView(state) {
         </div>
 
         <div class="hero-actions">
-          <button class="button ${profileReady ? "ghost" : "primary"} hero-action" data-action="profile" type="button">
-            ${profileReady ? "Editar perfil local" : "Configurar lo mínimo"}
-          </button>
-          <button class="button ghost hero-action" data-action="open-log" type="button">
+          <button class="button primary hero-action" data-action="open-log" type="button">
             ${hasEntry ? "Actualizar hoy" : "Registrar hoy"}
           </button>
+          <button class="button ghost hero-action" data-action="profile" type="button">
+            Perfil local
+          </button>
         </div>
+        <p class="hero-helper">Empieza por registrar hoy. El perfil es opcional.</p>
       </section>
 
       <section class="recs-block" aria-label="Recomendaciones">
@@ -222,7 +224,7 @@ function getPhaseLabel(phase, estimate, cycleLength) {
 }
 
 function recsSection(state, insight, dateISO, hasEntry) {
-  const provider = state.aiConfig?.provider || null;
+  const provider = resolveAIProvider(state.aiConfig);
   const recs = state.aiRecs && state.aiRecs.date === dateISO ? state.aiRecs : null;
 
   if (recs?.status === "loading") {

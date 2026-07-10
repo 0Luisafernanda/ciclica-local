@@ -1,5 +1,5 @@
-import { bleedingLabels, moodLabels } from "../data/labels.js?v=aqua-base-7";
-import { getCalendarDays, getFindings, getIntensity } from "../domain/cycle.js?v=aqua-base-7";
+import { bleedingLabels, moodLabels } from "../data/labels.js?v=ciclica-now-1";
+import { getCalendarDays, getFindings, getIntensity } from "../domain/cycle.js?v=ciclica-now-1";
 
 export function PatternsView(state) {
   const days = getCalendarDays(state);

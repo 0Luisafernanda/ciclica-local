@@ -1,8 +1,9 @@
-import { App } from "../components/App.js?v=aqua-base-7";
-import { buildPlainReport } from "../domain/report.js?v=aqua-base-7";
-import { clamp, toISODate } from "../domain/date.js?v=aqua-base-7";
-import { listOllamaModels, generateWithOllama, generateWithOpenAI, generateWithAI } from "../services/aiProvider.js?v=aqua-base-7";
-import { buildRecommendationMessages, parseRecommendations } from "../services/recommendations.js?v=aqua-base-7";
+import { App } from "../components/App.js?v=ciclica-one-1";
+import { buildPlainReport } from "../domain/report.js?v=ciclica-one-1";
+import { clamp, toISODate } from "../domain/date.js?v=ciclica-one-1";
+import { getActionPlan } from "../domain/actions.js?v=ciclica-one-1";
+import { listOllamaModels, generateWithOllama, generateWithOpenAI, generateWithAI, resolveAIProvider } from "../services/aiProvider.js?v=ciclica-one-1";
+import { buildRecommendationMessages, parseRecommendations } from "../services/recommendations.js?v=ciclica-one-1";
 
 export function bindApp(root, store) {
   let state = store.getState();
@@ -17,7 +18,7 @@ export function bindApp(root, store) {
 
   async function generateRecs() {
     const current = store.getState();
-    const provider = current.aiConfig?.provider;
+    const provider = resolveAIProvider(current.aiConfig);
     if (!provider) return;
     const dateISO = toISODate(new Date());
     store.setState((s) => ({ ...s, aiRecs: { date: dateISO, status: "loading", lines: [] } }));
@@ -30,8 +31,8 @@ export function bindApp(root, store) {
     } catch (error) {
       const friendly = /failed to fetch|networkerror/i.test(error.message)
         ? provider === "ollama"
-          ? "no encontre Ollama corriendo en esa direccion"
-          : "no pude conectar con el proveedor"
+          ? "No encontre Ollama corriendo en esa direccion. Si prefieres nube, cambia a OpenAI en Configuración."
+          : "No pude conectar con el proveedor de IA"
         : error.message;
       store.setState((s) => ({ ...s, aiRecs: { date: dateISO, status: "error", error: friendly, lines: [] } }));
     }
@@ -45,14 +46,9 @@ export function bindApp(root, store) {
     const profileModal = root.querySelector("#profileModal");
     const profileForm = root.querySelector("#profileForm");
     const menuModal = root.querySelector("#menuModal");
+    const checkInLayer = root.querySelector("#checkInLayer");
+    const checkInForm = root.querySelector("#checkInForm");
 
-    if (!state.profile && !state.onboardingDismissed && profileModal && !profileModal.open) {
-      try {
-        profileModal.showModal();
-      } catch {
-        profileModal.setAttribute("open", "");
-      }
-    }
 
     root.querySelector("[data-action='open-menu']")?.addEventListener("click", (event) => {
       if (!menuModal) return;
@@ -70,27 +66,102 @@ export function bindApp(root, store) {
       if (event.target === menuModal) menuModal.close();
     });
 
+    const openCheckIn = (focus) => {
+      if (!checkInLayer || !checkInForm) return;
+      if (focus) {
+        const selected = checkInForm.querySelector(`input[name='focus'][value='${focus}']`);
+        if (selected) selected.checked = true;
+      }
+      checkInLayer.classList.add("is-open");
+      checkInLayer.setAttribute("aria-hidden", "false");
+      document.body.classList.add("drawer-open");
+      window.setTimeout(() => checkInForm.querySelector("input[name='intensity']")?.focus(), 40);
+    };
+
+    const closeCheckIn = () => {
+      checkInLayer?.classList.remove("is-open");
+      checkInLayer?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("drawer-open");
+    };
+
+    root.querySelectorAll("[data-action='open-checkin']").forEach((button) => {
+      button.addEventListener("click", () => openCheckIn(button.dataset.focus));
+    });
+    root.querySelectorAll("[data-action='close-checkin']").forEach((button) => {
+      button.addEventListener("click", closeCheckIn);
+    });
+
+    checkInForm?.querySelector("input[name='intensity']")?.addEventListener("input", (event) => {
+      const output = checkInForm.querySelector("[data-checkin-intensity]");
+      if (output) output.textContent = event.target.value;
+    });
+
+    checkInForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      const now = new Date();
+      const draft = {
+        id: globalThis.crypto?.randomUUID?.() || `moment-${now.getTime()}`,
+        createdAt: now.toISOString(),
+        focus: String(form.get("focus") || "pain"),
+        intensity: clamp(Number(form.get("intensity")) || 5, 1, 10),
+        context: String(form.get("context") || "work"),
+        availableTime: String(form.get("availableTime") || "2"),
+        note: String(form.get("note") || "").trim(),
+      };
+      const checkIn = { ...draft, action: getActionPlan(draft), feedback: null };
+      const date = toISODate(now);
+      store.setState((current) => ({
+        ...current,
+        activeView: "now",
+        checkIns: [...(current.checkIns || []), checkIn],
+        entries: {
+          ...current.entries,
+          [date]: mergeMomentIntoEntry(current.entries?.[date], checkIn, date),
+        },
+      }));
+      closeCheckIn();
+      toast(root, "Momento guardado. Ciclica preparó una acción para ahora.");
+    });
+
+    root.querySelectorAll("[data-action='start-action']").forEach((button) => {
+      button.addEventListener("click", () => {
+        const id = button.dataset.checkinId;
+        store.setState((current) => ({
+          ...current,
+          checkIns: (current.checkIns || []).map((item) => (item.id === id ? { ...item, actionStartedAt: new Date().toISOString() } : item)),
+        }));
+        toast(root, "Acción iniciada. Vuelve después para registrar si ayudó.");
+      });
+    });
+
+    root.querySelectorAll("[data-action='action-feedback']").forEach((button) => {
+      button.addEventListener("click", () => {
+        const id = button.dataset.checkinId;
+        const feedback = button.dataset.feedback;
+        store.setState((current) => ({
+          ...current,
+          checkIns: (current.checkIns || []).map((item) => (item.id === id ? { ...item, feedback, feedbackAt: new Date().toISOString() } : item)),
+        }));
+        toast(root, "Respuesta guardada. Esto mejora tus próximos aprendizajes.");
+      });
+    });
+
     root.querySelectorAll("[data-action='profile']").forEach((button) => {
       button.addEventListener("click", () => {
         menuModal?.close();
-        profileForm?.setAttribute("data-step", "0");
-        updateOnboardingStep(profileForm);
-        profileModal?.showModal();
+        try {
+          profileModal?.showModal();
+        } catch {
+          profileModal?.setAttribute("open", "");
+        }
       });
     });
 
     root.querySelector("[data-action='close-modal']")?.addEventListener("click", () => {
       profileModal?.close();
-      if (!state.profile) {
-        store.setState((current) => ({ ...current, onboardingDismissed: true }));
-      }
     });
 
-    root.querySelector("[data-action='skip-onboarding']")?.addEventListener("click", () => {
-      profileModal?.close();
-      store.setState((current) => ({ ...current, onboardingDismissed: true }));
-      toast(root, "Puedes configurar Ciclica despues desde Ajustes.");
-    });
 
     root.querySelectorAll("input[name='contexts']").forEach((input) => {
       input.addEventListener("change", () => {
@@ -107,8 +178,6 @@ export function bindApp(root, store) {
       });
     });
 
-    updateOnboardingStep(profileForm);
-
     root.querySelectorAll("[data-action='onboarding-next']").forEach((button) => {
       button.addEventListener("click", () => {
         const current = Number(profileForm?.dataset.step || 0);
@@ -120,7 +189,7 @@ export function bindApp(root, store) {
 
     root.querySelector("[data-action='onboarding-back']")?.addEventListener("click", () => {
       const current = Number(profileForm?.dataset.step || 0);
-      profileForm.dataset.step = String(Math.max(0, current - 1));
+      profileForm.dataset.step = String(Math.max(1, current - 1));
       updateOnboardingStep(profileForm);
     });
 
@@ -191,7 +260,7 @@ export function bindApp(root, store) {
 
     root.querySelector("[data-action='export']")?.addEventListener("click", () => {
       menuModal?.close();
-      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify(getExportState(state), null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -321,6 +390,39 @@ export function bindApp(root, store) {
   }
 }
 
+export function getExportState(state) {
+  return {
+    ...state,
+    aiConfig: {
+      ...(state.aiConfig || {}),
+      openai: {
+        ...(state.aiConfig?.openai || {}),
+        apiKey: "",
+      },
+    },
+  };
+}
+
+export function mergeMomentIntoEntry(existing, checkIn, date) {
+  const entry = {
+    date,
+    bleeding: existing?.bleeding || "none",
+    pain: Number(existing?.pain) || 0,
+    energy: Number.isFinite(Number(existing?.energy)) ? Number(existing.energy) : 6,
+    sleep: Number.isFinite(Number(existing?.sleep)) ? Number(existing.sleep) : 7,
+    mood: existing?.mood || "calm",
+    skin: existing?.skin || "none",
+    note: checkIn.note || existing?.note || "",
+    updatedAt: checkIn.createdAt || new Date().toISOString(),
+  };
+
+  if (checkIn.focus === "pain") entry.pain = clamp(Number(checkIn.intensity) || 0, 0, 10);
+  if (checkIn.focus === "lowEnergy") entry.energy = clamp(10 - (Number(checkIn.intensity) || 0), 0, 10);
+  if (checkIn.focus === "anxious") entry.mood = "anxious";
+  if (checkIn.focus === "sensitive") entry.mood = "sensitive";
+  return entry;
+}
+
 function toast(root, message) {
   const node = root.querySelector("#toast");
   if (!node) return;
@@ -333,7 +435,7 @@ function toast(root, message) {
 
 function updateOnboardingStep(form) {
   if (!form) return;
-  const step = Number(form.dataset.step || 0);
+  const step = Number(form.dataset.step || 1);
   form.querySelectorAll("[data-step-panel]").forEach((panel) => {
     panel.classList.toggle("is-active", Number(panel.dataset.stepPanel) === step);
   });
@@ -342,10 +444,9 @@ function updateOnboardingStep(form) {
     dot.classList.toggle("is-active", dotStep === step);
     dot.classList.toggle("is-complete", dotStep < step);
   });
-  form.querySelector("[data-action='onboarding-back']")?.toggleAttribute("disabled", step === 0);
-  form.querySelector(".onboarding-actions")?.classList.toggle("is-intro", step === 0);
-  form.querySelector(".onboarding-actions [data-action='onboarding-next']")?.classList.toggle("is-hidden", step === 0 || step === 3);
-  form.querySelector("[data-action='save-profile']")?.classList.toggle("is-visible", step === 3);
+  form.querySelector("[data-action='onboarding-back']")?.toggleAttribute("disabled", step <= 1);
+  form.querySelector(".onboarding-actions [data-action='onboarding-next']")?.toggleAttribute("hidden", step >= 3);
+  form.querySelector("[data-action='save-profile']")?.toggleAttribute("hidden", step < 3);
 }
 
 function canAdvance(form, step) {

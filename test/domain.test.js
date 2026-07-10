@@ -130,3 +130,25 @@ test("plain report omits unknown context keys and preserves readable known label
   assert.match(report, /SOMP\/SOP/);
   assert.doesNotMatch(report, /unknown-key|undefined/);
 });
+
+test("consult report includes actions tried and whether they helped", () => {
+  const state = {
+    ...baseState,
+    checkIns: [
+      {
+        createdAt: "2026-07-09T12:00:00.000Z",
+        focus: "pain",
+        intensity: 7,
+        action: { id: "pain-work-2", title: "Bajar el dolor sin dejar de trabajar" },
+        feedback: "some",
+      },
+    ],
+  };
+
+  const html = buildReportHTML(state);
+  const plain = buildPlainReport(state);
+
+  assert.match(html, /Acciones probadas/);
+  assert.match(html, /Bajar el dolor sin dejar de trabajar/);
+  assert.match(plain, /ayudó un poco/i);
+});

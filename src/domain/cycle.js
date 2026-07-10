@@ -1,5 +1,5 @@
-import { addDays, clamp, daysBetween, parseISODate, startOfDay, toISODate } from "./date.js?v=aqua-base-7";
-import { moodLabels, bleedingLabels, skinLabels } from "../data/labels.js?v=aqua-base-7";
+import { addDays, clamp, daysBetween, parseISODate, startOfDay, toISODate } from "./date.js?v=ciclica-one-1";
+import { moodLabels, bleedingLabels, skinLabels } from "../data/labels.js?v=ciclica-one-1";
 
 export function getEntries(state) {
   return Object.values(state.entries).sort((a, b) => a.date.localeCompare(b.date));

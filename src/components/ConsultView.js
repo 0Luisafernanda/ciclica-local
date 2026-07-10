@@ -1,18 +1,18 @@
-import { buildReportHTML } from "../domain/report.js?v=aqua-base-7";
+import { buildReportHTML } from "../domain/report.js?v=ciclica-now-1";
 
 export function ConsultView(state) {
   return `
-    <section class="view is-visible" data-view-panel="consult">
-      <div class="panel consult-header">
+    <section class="consult-view" data-view-panel="consult">
+      <header class="editorial-header consult-title-row">
         <div>
-          <p class="micro-label">Resumen para consulta</p>
-          <h3>Llévalo a una conversación profesional</h3>
-          <p>Genera un resumen limpio, local y sin etiquetas automáticas.</p>
+          <p class="eyebrow">Consulta</p>
+          <h2>Una historia útil, no una descarga de datos</h2>
+          <p>Resume qué cambió, qué acciones probaste y qué merece una conversación profesional.</p>
         </div>
-        <button class="button ghost" data-action="copy-report" type="button">Copiar resumen</button>
-      </div>
+        <button class="secondary-cta" data-action="copy-report" type="button">Copiar resumen</button>
+      </header>
 
-      <article class="panel report-panel">${buildReportHTML(state)}</article>
+      <article class="consult-document">${buildReportHTML(state)}</article>
     </section>
   `;
 }

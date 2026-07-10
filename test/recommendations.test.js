@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { buildRecommendationMessages, parseRecommendations } from "../src/services/recommendations.js";
+import { resolveAIProvider } from "../src/services/aiProvider.js";
 
 test("recommendation prompt carries the real logged data and cycle irregularity", () => {
   const state = {
@@ -30,6 +31,14 @@ test("recommendation prompt without profile says the phase is unknown instead of
 
   assert.match(userContent, /fase desconocida/i);
   assert.match(userContent, /Sin registro hoy/);
+});
+
+test("resolveAIProvider prefers ollama by default, keeps explicit openai, and preserves disabled state", () => {
+  assert.equal(resolveAIProvider({}), "ollama");
+  assert.equal(resolveAIProvider({ provider: undefined }), "ollama");
+  assert.equal(resolveAIProvider({ provider: "ollama" }), "ollama");
+  assert.equal(resolveAIProvider({ provider: "openai" }), "openai");
+  assert.equal(resolveAIProvider({ provider: null }), null);
 });
 
 test("parseRecommendations strips bullets and numbering and caps at four lines", () => {

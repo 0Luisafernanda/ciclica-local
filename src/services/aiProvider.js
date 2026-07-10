@@ -50,9 +50,17 @@ export async function generateWithOpenAI({ apiKey, model }, messages) {
   return text;
 }
 
+export function resolveAIProvider(aiConfig) {
+  if (!aiConfig) return null;
+  if (aiConfig.provider === "ollama" || aiConfig.provider === "openai") return aiConfig.provider;
+  if (aiConfig.provider === undefined) return "ollama";
+  return null;
+}
+
 export async function generateWithAI(aiConfig, messages) {
-  if (!aiConfig?.provider) throw new Error("No hay proveedor de IA configurado.");
-  if (aiConfig.provider === "ollama") return generateWithOllama(aiConfig.ollama || {}, messages);
-  if (aiConfig.provider === "openai") return generateWithOpenAI(aiConfig.openai || {}, messages);
+  const provider = resolveAIProvider(aiConfig);
+  if (!provider) throw new Error("No hay proveedor de IA configurado.");
+  if (provider === "ollama") return generateWithOllama(aiConfig.ollama || {}, messages);
+  if (provider === "openai") return generateWithOpenAI(aiConfig.openai || {}, messages);
   throw new Error("Proveedor de IA desconocido.");
 }
