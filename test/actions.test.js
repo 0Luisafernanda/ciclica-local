@@ -31,6 +31,18 @@ test("getActionPlan adapts low-energy guidance to ten available minutes", () => 
   assert.ok(plan.steps.length >= 3);
 });
 
+test("getActionPlan uses a concrete low-energy instruction instead of abstract copy", () => {
+  const plan = getActionPlan({
+    focus: "lowEnergy",
+    intensity: 8,
+    context: "home",
+    availableTime: "30",
+  });
+
+  assert.match(plan.title, /quitar una tarea.*descansar/i);
+  assert.doesNotMatch(plan.title, /proteger energía|resto del día/i);
+});
+
 test("getActionLearning separates helpful actions from uncertain ones", () => {
   const learning = getActionLearning([
     { action: { id: "heat-pain", title: "Calor local" }, feedback: "much" },

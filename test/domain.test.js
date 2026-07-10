@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { getCycleEstimate, getFindings, getInsight } from "../src/domain/cycle.js";
+import { getCycleEstimate, getFindings, getInsight, getPersonalInsight } from "../src/domain/cycle.js";
 import { buildPlainReport, buildReportHTML } from "../src/domain/report.js";
 
 const baseState = {
@@ -80,6 +80,43 @@ test("a single mild symptom does not trigger the cluster insight", () => {
 
   assert.equal(insight.title, "Registro de hoy guardado");
   assert.doesNotMatch(insight.lines.join(" "), /vaiven hormonal/i);
+});
+
+test("personal insight connects low energy with short sleep using observed evidence", () => {
+  const state = {
+    ...baseState,
+    entries: {
+      "2026-06-03": { date: "2026-06-03", pain: 1, energy: 3, sleep: 4, mood: "calm" },
+      "2026-06-04": { date: "2026-06-04", pain: 2, energy: 4, sleep: 5, mood: "sensitive" },
+      "2026-06-05": { date: "2026-06-05", pain: 1, energy: 3, sleep: 4, mood: "calm" },
+      "2026-06-06": { date: "2026-06-06", pain: 0, energy: 8, sleep: 8, mood: "calm" },
+    },
+    checkIns: [],
+  };
+
+  const insight = getPersonalInsight(state, "2026-06-06");
+
+  assert.equal(insight.status, "pattern");
+  assert.match(insight.headline, /energía baja.*poco sueño/i);
+  assert.match(insight.evidence, /3 de 3 días con energía baja/i);
+  assert.match(insight.body, /tus registros/i);
+});
+
+test("personal insight admits cold start and says what Ciclica is observing", () => {
+  const insight = getPersonalInsight(
+    {
+      ...baseState,
+      entries: {},
+      checkIns: [{ id: "one", focus: "pain", context: "work", intensity: 6, createdAt: "2026-06-03T12:00:00Z" }],
+    },
+    "2026-06-03",
+  );
+
+  assert.equal(insight.status, "watching");
+  assert.match(insight.headline, /falta saber.*dolor.*se repite/i);
+  assert.match(insight.body, /dolor.*trabajando/i);
+  assert.match(insight.evidence, /1 momento/i);
+  assert.doesNotMatch(insight.body, /fase folicular|energía más estable/i);
 });
 
 test("findings keep clinical language cautious for SOMP/SOP and high pain", () => {

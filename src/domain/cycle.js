@@ -1,5 +1,5 @@
-import { addDays, clamp, daysBetween, parseISODate, startOfDay, toISODate } from "./date.js?v=ciclica-one-1";
-import { moodLabels, bleedingLabels, skinLabels } from "../data/labels.js?v=ciclica-one-1";
+import { addDays, clamp, daysBetween, parseISODate, startOfDay, toISODate } from "./date.js?v=ciclica-value-1";
+import { moodLabels, bleedingLabels, skinLabels } from "../data/labels.js?v=ciclica-value-1";
 
 export function getEntries(state) {
   return Object.values(state.entries).sort((a, b) => a.date.localeCompare(b.date));
@@ -114,6 +114,117 @@ export function getInsight(state, dateISO = toISODate(new Date())) {
     title: estimate.headline,
     lines,
     actions,
+  };
+}
+
+export function getPersonalInsight(state, dateISO = toISODate(new Date())) {
+  const entries = getEntries(state)
+    .filter((entry) => !entry.date || entry.date <= dateISO)
+    .slice(-12);
+  const checkIns = (Array.isArray(state.checkIns) ? state.checkIns : []).slice(-8);
+
+  const lowEnergyDays = entries.filter((entry) => Number(entry.energy) <= 4);
+  const lowEnergyWithShortSleep = lowEnergyDays.filter((entry) => Number(entry.sleep) <= 5);
+  if (lowEnergyWithShortSleep.length >= 2 && lowEnergyWithShortSleep.length / lowEnergyDays.length >= 0.6) {
+    return {
+      status: "pattern",
+      headline: "La energía baja aparece junto con poco sueño",
+      body: "En tus registros, los días de menor energía también tuvieron cinco horas de sueño o menos.",
+      evidence: `Confianza media basada en ${lowEnergyWithShortSleep.length} de ${lowEnergyDays.length} días con energía baja`,
+    };
+  }
+
+  const painDays = entries.filter((entry) => Number(entry.pain) >= 5);
+  const painWithShortSleep = painDays.filter((entry) => Number(entry.sleep) <= 5);
+  if (painWithShortSleep.length >= 2 && painWithShortSleep.length / painDays.length >= 0.6) {
+    return {
+      status: "pattern",
+      headline: "El dolor aparece junto con poco sueño",
+      body: "Tus registros conectan dolor de intensidad media o alta con noches de cinco horas o menos.",
+      evidence: `Confianza media basada en ${painWithShortSleep.length} de ${painDays.length} días con dolor`,
+    };
+  }
+
+  const actionCounts = new Map();
+  checkIns
+    .filter((item) => item.action?.title && ["much", "some"].includes(item.feedback))
+    .forEach((item) => {
+      const key = item.action.id || item.action.title;
+      const current = actionCounts.get(key) || { count: 0, title: item.action.title };
+      current.count += 1;
+      actionCounts.set(key, current);
+    });
+  const repeatedAction = [...actionCounts.values()].sort((a, b) => b.count - a.count)[0];
+  if (repeatedAction?.count >= 2) {
+    return {
+      status: "pattern",
+      headline: `“${repeatedAction.title}” funcionó más de una vez`,
+      body: "Este resultado viene de tus respuestas anteriores, no de una recomendación general.",
+      evidence: `Confianza media basada en ${repeatedAction.count} resultados favorables`,
+    };
+  }
+
+  if (checkIns.length >= 3) {
+    const grouped = new Map();
+    checkIns.forEach((item) => grouped.set(item.focus, (grouped.get(item.focus) || 0) + 1));
+    const [focus, count] = [...grouped.entries()].sort((a, b) => b[1] - a[1])[0] || [];
+    if (focus && count >= 2) {
+      const focusLabel = {
+        pain: "El dolor",
+        lowEnergy: "La energía baja",
+        anxious: "La ansiedad",
+        sensitive: "La sensibilidad",
+        bloated: "La hinchazón",
+        focus: "La dificultad para concentrarte",
+      }[focus] || "Esta señal";
+      const related = checkIns.filter((item) => item.focus === focus);
+      const contexts = new Map();
+      related.forEach((item) => contexts.set(item.context, (contexts.get(item.context) || 0) + 1));
+      const [context, contextCount] = [...contexts.entries()].sort((a, b) => b[1] - a[1])[0] || [];
+      const contextLabel = { work: "mientras trabajabas", home: "en casa", outside: "fuera de casa", resting: "mientras descansabas" }[context];
+      return {
+        status: "pattern",
+        headline: `${focusLabel} se está repitiendo`,
+        body: contextCount >= 2 && contextLabel
+          ? `Apareció ${contextLabel} en ${contextCount} de esos momentos.`
+          : "Todavía falta contexto para saber qué suele acompañarla.",
+        evidence: `Patrón posible en ${count} de ${checkIns.length} momentos recientes`,
+      };
+    }
+  }
+
+  const latest = checkIns.at(-1);
+  if (latest) {
+    const focusLabel = {
+      pain: "dolor",
+      lowEnergy: "energía baja",
+      anxious: "ansiedad",
+      sensitive: "sensibilidad",
+      bloated: "hinchazón",
+      focus: "dificultad para concentrarte",
+    }[latest.focus] || "esta señal";
+    const headlineFocus = {
+      pain: "el dolor",
+      lowEnergy: "la energía baja",
+      anxious: "la ansiedad",
+      sensitive: "la sensibilidad",
+      bloated: "la hinchazón",
+      focus: "la dificultad para concentrarte",
+    }[latest.focus] || "esta señal";
+    const contextLabel = { work: "trabajando", home: "en casa", outside: "fuera de casa", resting: "descansando" }[latest.context] || "en este contexto";
+    return {
+      status: "watching",
+      headline: `Falta saber si ${headlineFocus} se repite`,
+      body: `Solo hay ${checkIns.length} registro${checkIns.length === 1 ? "" : "s"} de ${focusLabel} ${contextLabel}`,
+      evidence: `Evidencia inicial con ${checkIns.length} momento${checkIns.length === 1 ? "" : "s"} registrado${checkIns.length === 1 ? "" : "s"}`,
+    };
+  }
+
+  return {
+    status: "watching",
+    headline: "Aún no hay un patrón personal",
+    body: "Registra tres días distintos para comparar cambios con el momento del ciclo",
+    evidence: "Sin evidencia todavía",
   };
 }
 

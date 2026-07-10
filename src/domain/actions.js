@@ -60,7 +60,7 @@ const plans = {
       ],
     },
     30: {
-      title: "Proteger energía para el resto del día",
+      title: "Quitar una tarea y descansar veinte minutos",
       why: "Una pausa más larga sirve para recuperar capacidad, no para llenar el tiempo con otra obligación.",
       steps: [
         "Silencia notificaciones durante veinte minutos.",
