@@ -1,4 +1,4 @@
-export function Shell({ content, modal, aiModal, checkInPanel }) {
+export function Shell({ content, modal, aiModal }) {
   return `
     <div class="desktop-shell" aria-label="Ciclica local">
       <main class="desktop-app single-surface" aria-label="Ciclica">
@@ -28,7 +28,6 @@ export function Shell({ content, modal, aiModal, checkInPanel }) {
         <button class="menu-row menu-row-danger" data-action="reset-data" type="button">Borrar datos</button>
       </dialog>
 
-      ${checkInPanel || ""}
       ${modal || ""}
       ${aiModal || ""}
       <div class="toast" id="toast" role="status" aria-live="polite"></div>

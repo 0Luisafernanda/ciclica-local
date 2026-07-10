@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getExportState, mergeMomentIntoEntry } from "../src/ui/handlers.js";
+import { getExportState, mergeDailyLogIntoEntry, mergeMomentIntoEntry, toggleDailySignal } from "../src/ui/handlers.js";
 
 test("mergeMomentIntoEntry keeps existing daily data and maps the current focus", () => {
   const entry = mergeMomentIntoEntry(
@@ -22,6 +22,25 @@ test("mergeMomentIntoEntry maps low energy and anxious focus without inventing o
   assert.equal(energyEntry.energy, 3);
   assert.equal(moodEntry.mood, "anxious");
   assert.equal(moodEntry.pain, 0);
+});
+
+test("daily log preserves prior data and maps selected changes into comparable signals", () => {
+  const entry = mergeDailyLogIntoEntry(
+    { date: "2026-07-10", note: "previa", skin: "none" },
+    "2026-07-10",
+    { dailyState: "harder", dailySignals: ["pain", "sleep"], dailyIntensity: "notable" },
+  );
+
+  assert.equal(entry.dailyState, "harder");
+  assert.deepEqual(entry.dailySignals, ["pain", "sleep"]);
+  assert.equal(entry.pain, 6);
+  assert.equal(entry.sleep, 4);
+  assert.equal(entry.note, "previa");
+});
+
+test("daily signal toggle adds and removes without duplicates", () => {
+  assert.deepEqual(toggleDailySignal(["pain"], "sleep"), ["pain", "sleep"]);
+  assert.deepEqual(toggleDailySignal(["pain", "sleep"], "pain"), ["sleep"]);
 });
 
 test("getExportState excludes the OpenAI API key without mutating live state", () => {

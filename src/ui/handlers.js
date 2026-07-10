@@ -1,9 +1,9 @@
-import { App } from "../components/App.js?v=ciclica-one-1";
-import { buildPlainReport } from "../domain/report.js?v=ciclica-one-1";
-import { clamp, toISODate } from "../domain/date.js?v=ciclica-one-1";
-import { getActionPlan } from "../domain/actions.js?v=ciclica-one-1";
-import { listOllamaModels, generateWithOllama, generateWithOpenAI, generateWithAI, resolveAIProvider } from "../services/aiProvider.js?v=ciclica-one-1";
-import { buildRecommendationMessages, parseRecommendations } from "../services/recommendations.js?v=ciclica-one-1";
+import { App } from "../components/App.js?v=ciclica-value-2";
+import { buildPlainReport } from "../domain/report.js?v=ciclica-value-1";
+import { clamp, toISODate } from "../domain/date.js?v=ciclica-value-1";
+import { getActionPlan } from "../domain/actions.js?v=ciclica-value-1";
+import { listOllamaModels, generateWithOllama, generateWithOpenAI, generateWithAI, resolveAIProvider } from "../services/aiProvider.js?v=ciclica-value-1";
+import { buildRecommendationMessages, parseRecommendations } from "../services/recommendations.js?v=ciclica-value-1";
 
 export function bindApp(root, store) {
   let state = store.getState();
@@ -48,7 +48,85 @@ export function bindApp(root, store) {
     const menuModal = root.querySelector("#menuModal");
     const checkInLayer = root.querySelector("#checkInLayer");
     const checkInForm = root.querySelector("#checkInForm");
+    const today = toISODate(new Date());
 
+    root.querySelectorAll("[data-action='daily-state']").forEach((button) => {
+      button.addEventListener("click", () => {
+        const dailyState = button.dataset.value;
+        store.setState((current) => {
+          const existing = current.entries?.[today];
+          const changes = dailyState === "normal"
+            ? { dailyState, dailySignals: [], dailyIntensity: null }
+            : { dailyState };
+          return {
+            ...current,
+            entries: {
+              ...current.entries,
+              [today]: mergeDailyLogIntoEntry(existing, today, changes),
+            },
+          };
+        });
+      });
+    });
+
+    root.querySelectorAll("[data-action='daily-signal']").forEach((button) => {
+      button.addEventListener("click", () => {
+        const value = button.dataset.value;
+        store.setState((current) => {
+          const existing = current.entries?.[today] || {};
+          const dailySignals = toggleDailySignal(existing.dailySignals, value);
+          return {
+            ...current,
+            entries: {
+              ...current.entries,
+              [today]: mergeDailyLogIntoEntry(existing, today, { dailySignals }),
+            },
+          };
+        });
+      });
+    });
+
+    root.querySelectorAll("[data-action='daily-intensity']").forEach((button) => {
+      button.addEventListener("click", () => {
+        const dailyIntensity = button.dataset.value;
+        store.setState((current) => {
+          const existing = current.entries?.[today] || {};
+          return {
+            ...current,
+            entries: {
+              ...current.entries,
+              [today]: mergeDailyLogIntoEntry(existing, today, { dailyIntensity }),
+            },
+          };
+        });
+      });
+    });
+
+    root.querySelector("[data-action='period-start']")?.addEventListener("click", () => {
+      store.setState((current) => {
+        const existing = current.entries?.[today] || {};
+        if (existing.periodStarted) return current;
+        const profile = {
+          cycleLength: 28,
+          regularity: "unsure",
+          contexts: [],
+          ...(current.profile || {}),
+          lastPeriod: today,
+        };
+        return {
+          ...current,
+          profile,
+          entries: {
+            ...current.entries,
+            [today]: mergeDailyLogIntoEntry(existing, today, {
+              periodStarted: true,
+              bleeding: existing.bleeding === "none" ? "medium" : existing.bleeding || "medium",
+              dailySignals: [...new Set([...(existing.dailySignals || []), "bleeding"])],
+            }),
+          },
+        };
+      });
+    });
 
     root.querySelector("[data-action='open-menu']")?.addEventListener("click", (event) => {
       if (!menuModal) return;
@@ -401,6 +479,28 @@ export function getExportState(state) {
       },
     },
   };
+}
+
+export function toggleDailySignal(signals, value) {
+  const current = Array.isArray(signals) ? signals : [];
+  return current.includes(value) ? current.filter((item) => item !== value) : [...current, value];
+}
+
+export function mergeDailyLogIntoEntry(existing, date, changes) {
+  const entry = { ...(existing || {}), date, ...changes };
+  const signals = Array.isArray(entry.dailySignals) ? entry.dailySignals : [];
+  const harder = entry.dailyState === "harder";
+  const painValue = { mild: 3, notable: 6, strong: 8 }[entry.dailyIntensity] || 5;
+  const lowEnergyValue = { mild: 5, notable: 3, strong: 1 }[entry.dailyIntensity] || 4;
+  const lowSleepValue = { mild: 5, notable: 4, strong: 2 }[entry.dailyIntensity] || 4;
+
+  if (signals.includes("pain")) entry.pain = harder ? painValue : 1;
+  if (signals.includes("energy")) entry.energy = harder ? lowEnergyValue : 8;
+  if (signals.includes("sleep")) entry.sleep = harder ? lowSleepValue : 8;
+  if (signals.includes("mood")) entry.mood = harder ? "sensitive" : "calm";
+  if (signals.includes("bleeding")) entry.bleeding = { mild: "light", notable: "medium", strong: "heavy" }[entry.dailyIntensity] || "light";
+
+  return entry;
 }
 
 export function mergeMomentIntoEntry(existing, checkIn, date) {

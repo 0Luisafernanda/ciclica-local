@@ -1,6 +1,6 @@
-import { contextLabels } from "../data/labels.js?v=ciclica-one-1";
-import { getEntries } from "./cycle.js?v=ciclica-one-1";
-import { escapeHTML } from "../utils/html.js?v=ciclica-one-1";
+import { contextLabels } from "../data/labels.js?v=ciclica-value-1";
+import { getEntries } from "./cycle.js?v=ciclica-value-1";
+import { escapeHTML } from "../utils/html.js?v=ciclica-value-1";
 
 const focusLabels = {
   pain: "dolor",

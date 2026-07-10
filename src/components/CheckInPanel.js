@@ -1,4 +1,4 @@
-import { focusOptions } from "../domain/actions.js?v=ciclica-one-1";
+import { focusOptions } from "../domain/actions.js?v=ciclica-value-1";
 
 export function CheckInPanel() {
   return `

@@ -1,108 +1,148 @@
-import { focusOptions, getMomentInterpretation } from "../domain/actions.js?v=ciclica-one-1";
-import { escapeHTML } from "../utils/html.js?v=ciclica-one-1";
+import { getCycleEstimate, getPersonalInsight } from "../domain/cycle.js?v=ciclica-value-1";
+import { toISODate } from "../domain/date.js?v=ciclica-value-1";
+import { escapeHTML } from "../utils/html.js?v=ciclica-value-1";
 
-const focusLabels = Object.fromEntries(focusOptions.map((item) => [item.id, item.label]));
-const contextLabels = {
-  work: "trabajando",
-  home: "en casa",
-  outside: "fuera",
-  resting: "descansando",
-};
-
-export function NowView(state) {
-  const checkIns = Array.isArray(state.checkIns) ? state.checkIns : [];
-  const latest = checkIns.at(-1);
+export function NowView(state, currentDate = new Date()) {
+  const dateISO = toISODate(currentDate);
+  const personalInsight = getPersonalInsight(state, dateISO);
 
   return `
     <section class="now-view compact-now" data-view-panel="now">
-      ${latest ? renderMoment(state, latest, checkIns.slice(0, -1)) : renderStart()}
+      ${renderCycleContext(state, currentDate)}
+      ${renderPersonalInsight(personalInsight)}
+      ${renderDailyRegister(state, dateISO)}
     </section>
   `;
 }
 
-function renderStart() {
-  return `
-    <div class="single-start">
-      <p class="eyebrow">${formatDay(new Date())}</p>
-      <h1>¿Cómo estás ahora?</h1>
-      <p>Cuéntale a Ciclica qué pesa más. Te devolverá una acción posible para este momento.</p>
-      <button class="primary-cta" data-action="open-checkin" type="button">Contarle a Ciclica</button>
-      <small>Todo queda en este dispositivo.</small>
-    </div>
-  `;
-}
+function renderCycleContext(state, currentDate) {
+  const estimate = getCycleEstimate(state, currentDate);
+  const profileReady = Boolean(state.profile?.lastPeriod);
 
-function renderMoment(state, latest, previous) {
-  const interpretation = getMomentInterpretation(latest, previous);
-  const action = latest.action;
-  const focus = focusLabels[latest.focus] || "Señal registrada";
-
-  return `
-    <header class="compact-moment-head">
-      <div>
-        <p class="eyebrow">Ahora · ${formatTime(latest.createdAt)}</p>
-        <h1>${escapeHTML(focus)} <span>${Number(latest.intensity) || 0}/10</span></h1>
-        <p>${escapeHTML(contextLabels[latest.context] || "contexto personal")}</p>
-      </div>
-      <button class="text-action" data-action="open-checkin" type="button">Actualizar</button>
-    </header>
-
-    <div class="compact-flow">
-      <section class="compact-line">
-        <p class="section-label">Puede influir · ${escapeHTML(interpretation.confidence)}</p>
-        <p>${escapeHTML(interpretation.body)}</p>
-      </section>
-
-      ${action ? renderAction(latest, action) : ""}
-      ${action ? renderFeedback(latest) : ""}
-    </div>
-  `;
-}
-
-function renderAction(checkIn, action) {
-  return `
-    <section class="compact-line compact-action">
-      <div class="compact-line-head">
-        <p class="section-label">Prueba ahora</p>
-        <span>${Number(action.durationMinutes) || 2} min</span>
-      </div>
-      <h2>${escapeHTML(action.title)}</h2>
-      <p>${escapeHTML(action.steps.slice(0, 3).join(" · "))}</p>
-      <div class="compact-controls">
-        <button class="primary-cta compact" data-action="start-action" data-checkin-id="${escapeHTML(checkIn.id)}" type="button">Empezar</button>
-        <button class="text-action" data-action="open-checkin" data-focus="${escapeHTML(checkIn.focus)}" type="button">Otra opción</button>
-      </div>
-    </section>
-  `;
-}
-
-function renderFeedback(checkIn) {
-  if (checkIn.feedback) {
-    const labels = { much: "Ayudó bastante", some: "Ayudó un poco", no: "No ayudó" };
+  if (!profileReady) {
     return `
-      <section class="compact-feedback is-recorded">
-        <p><strong>${labels[checkIn.feedback] || "Respuesta guardada"}.</strong> Ciclica lo tendrá en cuenta la próxima vez.</p>
+      <section class="cycle-context-band" aria-label="Contexto del ciclo">
+        <div>
+          <p class="section-label">Ciclo</p>
+          <strong>Día del ciclo</strong>
+          <span>Sin estimar</span>
+        </div>
+        <div>
+          <p class="section-label">Próximo periodo</p>
+          <strong>Sin estimar</strong>
+          <button class="text-action" data-action="profile" type="button">Añadir última fecha</button>
+        </div>
       </section>
     `;
   }
 
+  const cycleLength = Number(state.profile.cycleLength) || 28;
+  const nextDate = addLocalDays(currentDate, estimate.nextPeriodInDays || 0);
+  const phaseLabels = {
+    menstrual: "Fase menstrual probable",
+    follicular: "Fase folicular probable",
+    ovulatory: "Ventana ovulatoria posible",
+    luteal: "Fase lútea probable",
+  };
+
   return `
-    <section class="compact-feedback">
-      <p><strong>¿Te ayudó?</strong></p>
-      <div class="feedback-options">
-        <button data-action="action-feedback" data-checkin-id="${escapeHTML(checkIn.id)}" data-feedback="much" type="button">Bastante</button>
-        <button data-action="action-feedback" data-checkin-id="${escapeHTML(checkIn.id)}" data-feedback="some" type="button">Un poco</button>
-        <button data-action="action-feedback" data-checkin-id="${escapeHTML(checkIn.id)}" data-feedback="no" type="button">No</button>
+    <section class="cycle-context-band" aria-label="Contexto del ciclo">
+      <div>
+        <p class="section-label">Tu ciclo</p>
+        <strong>Día ${estimate.day} de ${cycleLength}</strong>
+        <span>${escapeHTML(phaseLabels[estimate.phase] || "Fase sin estimar")}</span>
+        <span>Confianza ${escapeHTML(String(estimate.confidence).toLowerCase())}</span>
+      </div>
+      <div>
+        <p class="section-label">Próximo periodo</p>
+        <strong>${formatCalendarDate(nextDate)}</strong>
+        <span>en ~${estimate.nextPeriodInDays} día${estimate.nextPeriodInDays === 1 ? "" : "s"}</span>
       </div>
     </section>
   `;
 }
 
-function formatDay(date) {
-  return new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" }).format(date);
+function renderPersonalInsight(insight) {
+  return `
+    <section class="personal-insight-hero ${insight.status === "pattern" ? "has-pattern" : "is-watching"}" aria-label="Insight personal">
+      <p class="section-label">Lo que Ciclica está viendo</p>
+      <h1>${escapeHTML(insight.headline)}</h1>
+      <p>${escapeHTML(insight.body)}</p>
+      <span>${escapeHTML(insight.evidence)}</span>
+    </section>
+  `;
 }
 
-function formatTime(value) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "ahora" : new Intl.DateTimeFormat("es", { hour: "2-digit", minute: "2-digit" }).format(date);
+function renderDailyRegister(state, dateISO) {
+  const entry = state.entries?.[dateISO] || {};
+  const dailyState = entry.dailyState || "";
+  const signals = Array.isArray(entry.dailySignals) ? entry.dailySignals : [];
+  const expanded = dailyState === "better" || dailyState === "harder";
+
+  return `
+    <section class="daily-register" aria-label="Registro de hoy">
+      <div class="daily-register-head">
+        <div>
+          <p class="section-label">Hoy</p>
+          <h2>¿Cómo estuvo hoy respecto a lo normal?</h2>
+        </div>
+        <button class="period-start-button ${entry.periodStarted ? "is-selected" : ""}" data-action="period-start" data-date="${dateISO}" type="button" aria-pressed="${entry.periodStarted ? "true" : "false"}">
+          Empezó mi periodo
+        </button>
+      </div>
+
+      <div class="daily-choice-row" aria-label="Estado general de hoy">
+        ${dailyChoice("normal", "Como siempre", dailyState)}
+        ${dailyChoice("better", "Mejor", dailyState)}
+        ${dailyChoice("harder", "Más difícil", dailyState)}
+      </div>
+
+      ${expanded ? `
+        <div class="daily-detail">
+          <div>
+            <p class="daily-question">¿Qué cambió?</p>
+            <div class="daily-chip-row">
+              ${signalChoice("bleeding", "Sangrado", signals)}
+              ${signalChoice("pain", "Dolor", signals)}
+              ${signalChoice("energy", "Energía", signals)}
+              ${signalChoice("mood", "Ánimo", signals)}
+              ${signalChoice("sleep", "Sueño", signals)}
+              ${signalChoice("digestion", "Digestión", signals)}
+            </div>
+          </div>
+          <div>
+            <p class="daily-question">¿Qué tanto?</p>
+            <div class="daily-chip-row">
+              ${intensityChoice("mild", "Leve", entry.dailyIntensity)}
+              ${intensityChoice("notable", "Notable", entry.dailyIntensity)}
+              ${intensityChoice("strong", "Fuerte", entry.dailyIntensity)}
+            </div>
+          </div>
+        </div>
+      ` : ""}
+    </section>
+  `;
+}
+
+function dailyChoice(value, label, selected) {
+  return `<button class="daily-choice ${selected === value ? "is-selected" : ""}" data-action="daily-state" data-value="${value}" type="button" aria-pressed="${selected === value ? "true" : "false"}">${label}</button>`;
+}
+
+function signalChoice(value, label, selected) {
+  const active = selected.includes(value);
+  return `<button class="daily-chip ${active ? "is-selected" : ""}" data-action="daily-signal" data-value="${value}" type="button" aria-pressed="${active ? "true" : "false"}">${label}</button>`;
+}
+
+function intensityChoice(value, label, selected) {
+  return `<button class="daily-chip ${selected === value ? "is-selected" : ""}" data-action="daily-intensity" data-value="${value}" type="button" aria-pressed="${selected === value ? "true" : "false"}">${label}</button>`;
+}
+
+function formatCalendarDate(date) {
+  return new Intl.DateTimeFormat("es", { day: "numeric", month: "long" }).format(date);
+}
+
+function addLocalDays(date, days) {
+  const result = new Date(date);
+  result.setDate(result.getDate() + Number(days || 0));
+  return result;
 }

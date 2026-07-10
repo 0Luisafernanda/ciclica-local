@@ -1,5 +1,5 @@
-import { getCycleEstimate } from "../domain/cycle.js?v=ciclica-one-1";
-import { moodLabels, bleedingLabels, skinLabels, contextLabels } from "../data/labels.js?v=ciclica-one-1";
+import { getCycleEstimate } from "../domain/cycle.js?v=ciclica-value-1";
+import { moodLabels, bleedingLabels, skinLabels, contextLabels } from "../data/labels.js?v=ciclica-value-1";
 
 const phaseNames = {
   menstrual: "menstrual",
