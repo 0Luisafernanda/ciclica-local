@@ -1,25 +1,23 @@
 # Ciclica Local
 
-Ciclica Local es una app desktop, local-first y privada por defecto que ayuda a entender cómo estás **ahora**, probar una acción posible y aprender si realmente te ayudó.
+Ciclica Local es una app desktop, local-first y privada por defecto para consultar el ciclo y descubrir cambios personales con el menor esfuerzo posible.
 
 ## Una sola vista
 
-La aplicación no tiene navegación entre módulos ni un dashboard. La única superficie cambia según el momento:
+La aplicación no tiene navegación entre módulos ni un dashboard. La única superficie mantiene visible el contexto valioso y cambia según el momento:
 
-1. **¿Cómo estás ahora?**
-2. **Puede influir** — una lectura breve y prudente.
-3. **Prueba ahora** — una única acción contextual.
-4. **¿Te ayudó?** — bastante, un poco o no.
+1. **Contexto del ciclo** — día estimado, fase probable y próxima menstruación.
+2. **Lo que Ciclica está viendo** — el insight personal ocupa el centro e incluye evidencia y nivel de confianza.
+3. **Registro de hoy** — como siempre, mejor o más difícil.
+4. **Cambios opcionales** — señal e intensidad solo cuando algo fue diferente.
+
+Ciclica no presenta información general sobre fases como si fuera un insight. Si todavía no existe evidencia personal, lo dice claramente y explica qué relación está intentando observar.
+
+Si falta la última fecha menstrual, la misma franja muestra claramente qué no puede estimarse y permite completarla sin ocultar el resto de la experiencia.
 
 Todo aparece en la misma pantalla y está diseñado para caber en la ventana desktop sin recorrer varias secciones.
 
-El check-in se abre temporalmente en un panel lateral y pregunta solo:
-
-- qué pesa más;
-- intensidad;
-- contexto;
-- tiempo disponible;
-- una nota opcional.
+El registro está dentro de la vista principal y se guarda con cada toque. También incluye un acceso directo para marcar el inicio del periodo.
 
 ## Menú secundario
 
@@ -45,12 +43,11 @@ No son vistas principales.
 ## Estructura técnica
 
 - `src/components/NowView.js`: la única superficie de producto
-- `src/components/CheckInPanel.js`: registro contextual lateral
 - `src/domain/actions.js`: acciones, interpretación y aprendizaje
 - `src/domain/cycle.js`: estimación cauta del ciclo
 - `src/domain/report.js`: resumen para consulta
 - `src/state/store.js`: persistencia y migración local
-- `src/ui/handlers.js`: check-ins, feedback, ajustes y exportación
+- `src/ui/handlers.js`: registro diario, ajustes y exportación
 
 ## Correr local
 
