@@ -222,9 +222,9 @@ export function getPersonalInsight(state, dateISO = toISODate(new Date())) {
 
   return {
     status: "watching",
-    headline: "Aún no hay un patrón personal",
-    body: "Registra tres días distintos para comparar cambios con el momento del ciclo",
-    evidence: "Sin evidencia todavía",
+    headline: "Sin patrón aún",
+    body: "Aparece cuando algo se repite en tus días.",
+    evidence: "",
   };
 }
 

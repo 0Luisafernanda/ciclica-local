@@ -1,4 +1,4 @@
-import { getCycleEstimate, getPersonalInsight } from "../domain/cycle.js?v=ciclica-moment-6";
+import { getCycleEstimate, getPersonalInsight } from "../domain/cycle.js?v=ciclica-moment-9";
 import { getMomentInterpretation } from "../domain/actions.js?v=ciclica-value-1";
 import { toISODate } from "../domain/date.js?v=ciclica-value-1";
 import { escapeHTML } from "../utils/html.js?v=ciclica-value-1";
@@ -177,11 +177,11 @@ function getPhaseBounds(cycleLength) {
 
 function renderPersonalInsight(insight) {
   return `
-    <section class="personal-insight-hero ${insight.status === "pattern" ? "has-pattern" : "is-watching"}" aria-label="Insight personal">
-      <p class="section-label">Lo que Ciclica está viendo</p>
-      <h1>${escapeHTML(insight.headline)}</h1>
-      <p>${escapeHTML(insight.body)}</p>
-      <span>${escapeHTML(insight.evidence)}</span>
+    <section class="pattern-card ${insight.status === "pattern" ? "has-pattern" : "is-watching"}" aria-label="Patrones">
+      <p class="section-label">Patrones</p>
+      <h2 class="pattern-title">${escapeHTML(insight.headline)}</h2>
+      <p class="pattern-body">${escapeHTML(insight.body)}</p>
+      ${insight.evidence ? `<p class="pattern-evidence">${escapeHTML(insight.evidence)}</p>` : ""}
     </section>
   `;
 }
@@ -190,18 +190,7 @@ function renderMomentBlock(state) {
   const checkIns = Array.isArray(state.checkIns) ? state.checkIns : [];
   const active = getActiveCheckIn(checkIns);
 
-  if (!active) {
-    return `
-      <section class="moment-cta-band" aria-label="Registrar un momento">
-        <div>
-          <p class="section-label">Ahora</p>
-          <h2>¿Qué necesitas ahora?</h2>
-          <p>Un momento, no un formulario. Ciclica propone una acción concreta y aprende si ayudó.</p>
-        </div>
-        <button class="primary-cta" data-action="open-checkin" type="button">Necesito algo ahora</button>
-      </section>
-    `;
-  }
+  if (!active) return "";
 
   const previous = checkIns.filter((item) => item.id !== active.id);
   const reading = getMomentInterpretation(active, previous);
@@ -241,11 +230,8 @@ function renderMomentBlock(state) {
       </section>
 
       <section class="feedback-section ${recorded ? "is-recorded" : ""}">
-        <p class="section-label">Después de probar</p>
-        <h3>${recorded ? "Respuesta guardada" : "¿Te ayudó?"}</h3>
-        <p>${recorded
-          ? "Esto alimenta tus próximos aprendizajes personales."
-          : "Sin esta respuesta Ciclica no asume que la acción funcionó."}</p>
+        <p class="section-label">Después</p>
+        <h3>${recorded ? "Quedó anotado" : "¿Te ayudó?"}</h3>
         ${recorded
           ? `<p class="confidence-text">${escapeHTML(feedbackLabel(active.feedback))}</p>`
           : `
@@ -262,51 +248,25 @@ function renderMomentBlock(state) {
 
 function renderDailyRegister(state, dateISO) {
   const entry = state.entries?.[dateISO] || {};
-  const dailyState = entry.dailyState || "";
-  const signals = Array.isArray(entry.dailySignals) ? entry.dailySignals : [];
-  const expanded = dailyState === "better" || dailyState === "harder";
 
   return `
-    <section class="daily-register" aria-label="Registro de hoy">
+    <section class="daily-register" aria-label="Cómo me siento hoy">
       <div class="daily-register-head">
         <div>
           <p class="section-label">Hoy</p>
-          <h2>¿Cómo estuvo hoy respecto a lo normal?</h2>
+          <div class="daily-title-row">
+            <button class="daily-title-button" data-action="open-checkin" type="button">
+              Cómo me siento
+            </button>
+            <button class="quiet-plus" data-action="open-checkin" type="button" aria-label="Añadir detalle">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.5v11M1.5 7h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </button>
+          </div>
         </div>
-        <button class="period-start-button ${entry.periodStarted ? "is-selected" : ""}" data-action="period-start" data-date="${dateISO}" type="button" aria-pressed="${entry.periodStarted ? "true" : "false"}">
+        <button class="text-action period-text-action ${entry.periodStarted ? "is-selected" : ""}" data-action="period-start" data-date="${dateISO}" type="button" aria-pressed="${entry.periodStarted ? "true" : "false"}">
           Empezó mi periodo
         </button>
       </div>
-
-      <div class="daily-choice-row" aria-label="Estado general de hoy">
-        ${dailyChoice("normal", "Como siempre", dailyState)}
-        ${dailyChoice("better", "Mejor", dailyState)}
-        ${dailyChoice("harder", "Más difícil", dailyState)}
-      </div>
-
-      ${expanded ? `
-        <div class="daily-detail">
-          <div>
-            <p class="daily-question">¿Qué cambió?</p>
-            <div class="daily-chip-row">
-              ${signalChoice("bleeding", "Sangrado", signals)}
-              ${signalChoice("pain", "Dolor", signals)}
-              ${signalChoice("energy", "Energía", signals)}
-              ${signalChoice("mood", "Ánimo", signals)}
-              ${signalChoice("sleep", "Sueño", signals)}
-              ${signalChoice("digestion", "Digestión", signals)}
-            </div>
-          </div>
-          <div>
-            <p class="daily-question">¿Qué tanto?</p>
-            <div class="daily-chip-row">
-              ${intensityChoice("mild", "Leve", entry.dailyIntensity)}
-              ${intensityChoice("notable", "Notable", entry.dailyIntensity)}
-              ${intensityChoice("strong", "Fuerte", entry.dailyIntensity)}
-            </div>
-          </div>
-        </div>
-      ` : ""}
     </section>
   `;
 }
@@ -345,19 +305,6 @@ function feedbackLabel(feedback) {
     some: "Ayudó un poco",
     no: "No ayudó esta vez",
   }[feedback] || "Respuesta guardada";
-}
-
-function dailyChoice(value, label, selected) {
-  return `<button class="daily-choice ${selected === value ? "is-selected" : ""}" data-action="daily-state" data-value="${value}" type="button" aria-pressed="${selected === value ? "true" : "false"}">${label}</button>`;
-}
-
-function signalChoice(value, label, selected) {
-  const active = selected.includes(value);
-  return `<button class="daily-chip ${active ? "is-selected" : ""}" data-action="daily-signal" data-value="${value}" type="button" aria-pressed="${active ? "true" : "false"}">${label}</button>`;
-}
-
-function intensityChoice(value, label, selected) {
-  return `<button class="daily-chip ${selected === value ? "is-selected" : ""}" data-action="daily-intensity" data-value="${value}" type="button" aria-pressed="${selected === value ? "true" : "false"}">${label}</button>`;
 }
 
 function formatCalendarDate(date) {

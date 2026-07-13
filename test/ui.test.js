@@ -27,39 +27,35 @@ test("NowView keeps cycle context insight moment CTA and daily registration visi
   assert.match(html, /cycle-phase-marker/);
   assert.match(html, /Próximo periodo/);
   assert.match(html, /29 de julio/);
-  assert.match(html, /Lo que Ciclica está viendo/);
-  assert.match(html, /¿Qué necesitas ahora\?/);
+  assert.match(html, /Patrones/);
+  assert.match(html, /section-label">Hoy</);
+  assert.match(html, /daily-title-button[^>]*>\s*Cómo me siento\s*</);
+  assert.match(html, /quiet-plus/);
   assert.match(html, /open-checkin/);
-  assert.match(html, /Necesito algo ahora/);
-  assert.match(html, /¿Cómo estuvo hoy respecto a lo normal\?/);
-  assert.match(html, /Como siempre/);
-  assert.match(html, /Mejor/);
-  assert.match(html, /Más difícil/);
+  assert.doesNotMatch(html, /Lo que Ciclica está viendo|Un momento, no un formulario|Sin evidencia|Necesito algo|¿Cómo te sientes\?|quiet-log/);
+  assert.doesNotMatch(html, />(Momento|Anotar)</);
+  assert.doesNotMatch(html, /\b(Bien|Normal|Difícil)\b/);
   assert.match(html, /Empezó mi periodo/);
+  assert.doesNotMatch(html, /¿Qué cambió\?|¿Qué tanto\?|Como siempre|Más difícil|daily-choice-row/);
   assert.doesNotMatch(html, /Últimos 14 días|Mapa de 28 días|Configurar lo mínimo|FOR YOU TODAY/);
 });
 
-test("NowView expands the inline register only when the day changed", () => {
+test("NowView keeps how I feel as a quiet open action without mood buttons", () => {
   const html = NowView(
     {
       profile: null,
       checkIns: [],
       entries: {
-        "2026-07-10": { date: "2026-07-10", dailyState: "harder", dailySignals: ["pain"], dailyIntensity: "notable" },
+        "2026-07-10": { date: "2026-07-10", dailyState: "harder" },
       },
     },
     new Date(2026, 6, 10, 12),
   );
 
-  assert.match(html, /¿Qué cambió\?/);
-  assert.match(html, /Dolor/);
-  assert.match(html, /Energía/);
-  assert.match(html, /Ánimo/);
-  assert.match(html, /Sueño/);
-  assert.match(html, /Sangrado/);
-  assert.match(html, /Leve/);
-  assert.match(html, /Notable/);
-  assert.match(html, /Fuerte/);
+  assert.match(html, /Cómo me siento/);
+  assert.match(html, /open-checkin/);
+  assert.doesNotMatch(html, /\b(Bien|Normal|Difícil)\b/);
+  assert.doesNotMatch(html, /¿Qué cambió\?|Sangrado|Notable|Fuerte|¿Cómo te sientes\?/);
 });
 
 test("NowView places a personal evidence-based insight at the center", () => {
@@ -114,7 +110,7 @@ test("NowView shows plan and feedback for an open moment instead of hiding the a
     ],
   });
 
-  assert.match(html, /Lo que Ciclica está viendo/);
+  assert.match(html, /Patrones/);
   assert.match(html, /Falta saber si el dolor se repite/);
   assert.match(html, /Qué hacer ahora/);
   assert.match(html, /Bajar el dolor sin dejar de trabajar/);
@@ -123,7 +119,7 @@ test("NowView shows plan and feedback for an open moment instead of hiding the a
   assert.match(html, /Bastante/);
   assert.match(html, /Un poco/);
   assert.match(html, /open-checkin/);
-  assert.match(html, /¿Cómo estuvo hoy respecto a lo normal\?/);
+  assert.match(html, /¿Cómo te sientes\?|Cómo me siento/);
 });
 
 test("Shell exposes one product surface without primary navigation", () => {
@@ -148,7 +144,7 @@ test("App mounts the check-in drawer alongside the single Now surface", () => {
 
   assert.match(html, /checkInLayer/);
   assert.match(html, /checkInForm/);
-  assert.match(html, /Necesito algo ahora/);
-  assert.match(html, /Un momento, no un formulario diario/);
+  assert.match(html, /quiet-plus/);
+  assert.match(html, /Cómo me siento/);
   assert.doesNotMatch(html, />Aprendizajes<|>Consulta<|>Biblioteca</);
 });

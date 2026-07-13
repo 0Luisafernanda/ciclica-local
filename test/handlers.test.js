@@ -24,7 +24,21 @@ test("mergeMomentIntoEntry maps low energy and anxious focus without inventing o
   assert.equal(moodEntry.pain, 0);
 });
 
-test("daily log preserves prior data and maps selected changes into comparable signals", () => {
+test("daily log maps a single feeling tap into comparable signals", () => {
+  const harder = mergeDailyLogIntoEntry(
+    { date: "2026-07-10", note: "previa", skin: "none" },
+    "2026-07-10",
+    { dailyState: "harder", dailySignals: [], dailyIntensity: null },
+  );
+
+  assert.equal(harder.dailyState, "harder");
+  assert.equal(harder.energy, 3);
+  assert.equal(harder.sleep, 4);
+  assert.equal(harder.pain, 4);
+  assert.equal(harder.note, "previa");
+});
+
+test("daily log still honors legacy signal and intensity details", () => {
   const entry = mergeDailyLogIntoEntry(
     { date: "2026-07-10", note: "previa", skin: "none" },
     "2026-07-10",

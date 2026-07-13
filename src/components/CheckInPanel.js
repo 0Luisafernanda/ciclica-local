@@ -7,8 +7,7 @@ export function CheckInPanel() {
       <aside class="checkin-drawer" id="checkInPanel" role="dialog" aria-modal="true" aria-labelledby="checkin-title">
         <header class="checkin-head">
           <div>
-            <p class="eyebrow">Un momento, no un formulario diario</p>
-            <h2 id="checkin-title">¿Qué necesitas ahora?</h2>
+            <h2 id="checkin-title">Cómo me siento</h2>
           </div>
           <button class="drawer-close" data-action="close-checkin" type="button" aria-label="Cerrar">×</button>
         </header>

@@ -7,18 +7,17 @@ Ciclica Local es una app desktop, local-first y privada por defecto para consult
 La aplicación no tiene navegación entre módulos ni un dashboard. La única superficie mantiene visible el contexto valioso y cambia según el momento:
 
 1. **Contexto del ciclo** — día estimado, fase y próxima menstruación.
-2. **Lo que Ciclica está viendo** — el insight personal ocupa el centro e incluye la evidencia observada.
+2. **Patrones** — insights personales en el centro, solo con evidencia observada.
 3. **Un momento** — cuando algo pesa ahora, un drawer pide foco, intensidad, contexto y tiempo; Ciclica responde con un plan concreto y pide feedback si ayudó.
-4. **Registro de hoy** — como siempre, mejor o más difícil (combustible de evidencia, no el centro del producto).
-5. **Cambios opcionales** — señal e intensidad solo cuando algo fue diferente.
+4. **Hoy** — “Cómo me siento” abre el registro con detalle; sin formularios visibles.
 
-Ciclica no presenta información general sobre fases como si fuera un insight. Si todavía no existe evidencia personal, lo dice claramente y explica qué relación está intentando observar.
+Ciclica no presenta información general sobre fases como si fuera un insight. Si todavía no existe evidencia personal, lo dice claramente.
 
 Si falta la última fecha menstrual, la misma franja muestra claramente qué no puede estimarse y permite completarla sin ocultar el resto de la experiencia.
 
 Todo aparece en la misma pantalla y está diseñado para caber en la ventana desktop sin recorrer varias secciones.
 
-El check-in de demanda y el registro ligero viven en la vista principal. También incluye un acceso directo para marcar el inicio del periodo.
+El check-in de demanda y el registro de un toque viven en la vista principal. También incluye un acceso directo para marcar el inicio del periodo.
 
 ## Menú secundario
 

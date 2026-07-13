@@ -1,4 +1,4 @@
-import { App } from "../components/App.js?v=ciclica-moment-6";
+import { App } from "../components/App.js?v=ciclica-moment-15";
 import { buildPlainReport } from "../domain/report.js?v=ciclica-value-1";
 import { clamp, toISODate } from "../domain/date.js?v=ciclica-value-1";
 import { getActionPlan } from "../domain/actions.js?v=ciclica-value-1";
@@ -55,47 +55,15 @@ export function bindApp(root, store) {
         const dailyState = button.dataset.value;
         store.setState((current) => {
           const existing = current.entries?.[today];
-          const changes = dailyState === "normal"
-            ? { dailyState, dailySignals: [], dailyIntensity: null }
-            : { dailyState };
           return {
             ...current,
             entries: {
               ...current.entries,
-              [today]: mergeDailyLogIntoEntry(existing, today, changes),
-            },
-          };
-        });
-      });
-    });
-
-    root.querySelectorAll("[data-action='daily-signal']").forEach((button) => {
-      button.addEventListener("click", () => {
-        const value = button.dataset.value;
-        store.setState((current) => {
-          const existing = current.entries?.[today] || {};
-          const dailySignals = toggleDailySignal(existing.dailySignals, value);
-          return {
-            ...current,
-            entries: {
-              ...current.entries,
-              [today]: mergeDailyLogIntoEntry(existing, today, { dailySignals }),
-            },
-          };
-        });
-      });
-    });
-
-    root.querySelectorAll("[data-action='daily-intensity']").forEach((button) => {
-      button.addEventListener("click", () => {
-        const dailyIntensity = button.dataset.value;
-        store.setState((current) => {
-          const existing = current.entries?.[today] || {};
-          return {
-            ...current,
-            entries: {
-              ...current.entries,
-              [today]: mergeDailyLogIntoEntry(existing, today, { dailyIntensity }),
+              [today]: mergeDailyLogIntoEntry(existing, today, {
+                dailyState,
+                dailySignals: [],
+                dailyIntensity: null,
+              }),
             },
           };
         });
@@ -490,15 +458,39 @@ export function mergeDailyLogIntoEntry(existing, date, changes) {
   const entry = { ...(existing || {}), date, ...changes };
   const signals = Array.isArray(entry.dailySignals) ? entry.dailySignals : [];
   const harder = entry.dailyState === "harder";
+  const better = entry.dailyState === "better";
+  const normal = entry.dailyState === "normal";
   const painValue = { mild: 3, notable: 6, strong: 8 }[entry.dailyIntensity] || 5;
   const lowEnergyValue = { mild: 5, notable: 3, strong: 1 }[entry.dailyIntensity] || 4;
   const lowSleepValue = { mild: 5, notable: 4, strong: 2 }[entry.dailyIntensity] || 4;
 
-  if (signals.includes("pain")) entry.pain = harder ? painValue : 1;
-  if (signals.includes("energy")) entry.energy = harder ? lowEnergyValue : 8;
-  if (signals.includes("sleep")) entry.sleep = harder ? lowSleepValue : 8;
-  if (signals.includes("mood")) entry.mood = harder ? "sensitive" : "calm";
-  if (signals.includes("bleeding")) entry.bleeding = { mild: "light", notable: "medium", strong: "heavy" }[entry.dailyIntensity] || "light";
+  if (signals.length) {
+    if (signals.includes("pain")) entry.pain = harder ? painValue : 1;
+    if (signals.includes("energy")) entry.energy = harder ? lowEnergyValue : 8;
+    if (signals.includes("sleep")) entry.sleep = harder ? lowSleepValue : 8;
+    if (signals.includes("mood")) entry.mood = harder ? "sensitive" : "calm";
+    if (signals.includes("bleeding")) {
+      entry.bleeding = { mild: "light", notable: "medium", strong: "heavy" }[entry.dailyIntensity] || "light";
+    }
+    return entry;
+  }
+
+  if (harder) {
+    entry.pain = 4;
+    entry.energy = 3;
+    entry.sleep = 4;
+    entry.mood = "sensitive";
+  } else if (better) {
+    entry.pain = 1;
+    entry.energy = 8;
+    entry.sleep = 8;
+    entry.mood = "calm";
+  } else if (normal) {
+    entry.pain = 1;
+    entry.energy = 6;
+    entry.sleep = 7;
+    entry.mood = "calm";
+  }
 
   return entry;
 }
