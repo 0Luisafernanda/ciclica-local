@@ -33,7 +33,7 @@ export function CheckInPanel() {
               ${choice("context", "work", "Trabajando", true)}
               ${choice("context", "home", "En casa")}
               ${choice("context", "outside", "Fuera")}
-              ${choice("context", "rest", "Descansando")}
+              ${choice("context", "resting", "Descansando")}
             </div>
           </fieldset>
 

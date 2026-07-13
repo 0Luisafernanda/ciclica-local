@@ -8,8 +8,9 @@ La aplicación no tiene navegación entre módulos ni un dashboard. La única su
 
 1. **Contexto del ciclo** — día estimado, fase probable y próxima menstruación.
 2. **Lo que Ciclica está viendo** — el insight personal ocupa el centro e incluye evidencia y nivel de confianza.
-3. **Registro de hoy** — como siempre, mejor o más difícil.
-4. **Cambios opcionales** — señal e intensidad solo cuando algo fue diferente.
+3. **Un momento** — cuando algo pesa ahora, un drawer pide foco, intensidad, contexto y tiempo; Ciclica responde con un plan concreto y pide feedback si ayudó.
+4. **Registro de hoy** — como siempre, mejor o más difícil (combustible de evidencia, no el centro del producto).
+5. **Cambios opcionales** — señal e intensidad solo cuando algo fue diferente.
 
 Ciclica no presenta información general sobre fases como si fuera un insight. Si todavía no existe evidencia personal, lo dice claramente y explica qué relación está intentando observar.
 
@@ -17,7 +18,7 @@ Si falta la última fecha menstrual, la misma franja muestra claramente qué no 
 
 Todo aparece en la misma pantalla y está diseñado para caber en la ventana desktop sin recorrer varias secciones.
 
-El registro está dentro de la vista principal y se guarda con cada toque. También incluye un acceso directo para marcar el inicio del periodo.
+El check-in de demanda y el registro ligero viven en la vista principal. También incluye un acceso directo para marcar el inicio del periodo.
 
 ## Menú secundario
 
@@ -43,11 +44,12 @@ No son vistas principales.
 ## Estructura técnica
 
 - `src/components/NowView.js`: la única superficie de producto
+- `src/components/CheckInPanel.js`: drawer de demanda (momento → acción → feedback)
 - `src/domain/actions.js`: acciones, interpretación y aprendizaje
 - `src/domain/cycle.js`: estimación cauta del ciclo
 - `src/domain/report.js`: resumen para consulta
 - `src/state/store.js`: persistencia y migración local
-- `src/ui/handlers.js`: registro diario, ajustes y exportación
+- `src/ui/handlers.js`: check-in, registro diario, ajustes y exportación
 
 ## Correr local
 

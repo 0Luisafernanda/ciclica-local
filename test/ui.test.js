@@ -2,8 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { NowView } from "../src/components/NowView.js";
 import { Shell } from "../src/components/Shell.js";
+import { App } from "../src/components/App.js";
 
-test("NowView keeps cycle context insight and daily registration visible together", () => {
+test("NowView keeps cycle context insight moment CTA and daily registration visible together", () => {
   const html = NowView(
     {
       profile: { lastPeriod: "2026-07-01", cycleLength: 28, regularity: "regular", contexts: [] },
@@ -14,16 +15,22 @@ test("NowView keeps cycle context insight and daily registration visible togethe
   );
 
   assert.match(html, /Día 10 de 28/);
+  assert.match(html, /cycle-ring/);
+  assert.match(html, /cycle-phase-timeline/);
+  assert.match(html, /cycle-phase-marker/);
+  assert.match(html, /Folicular|folicular/i);
   assert.match(html, /Próximo periodo/);
   assert.match(html, /29 de julio/);
   assert.match(html, /Lo que Ciclica está viendo/);
+  assert.match(html, /¿Qué necesitas ahora\?/);
+  assert.match(html, /open-checkin/);
+  assert.match(html, /Necesito algo ahora/);
   assert.match(html, /¿Cómo estuvo hoy respecto a lo normal\?/);
   assert.match(html, /Como siempre/);
   assert.match(html, /Mejor/);
   assert.match(html, /Más difícil/);
   assert.match(html, /Empezó mi periodo/);
-  assert.doesNotMatch(html, /¿Cómo estás ahora\?|Contarle a Ciclica|open-checkin|·/);
-  assert.doesNotMatch(html, /Últimos 14 días|Mapa de 28 días|Configurar lo mínimo/);
+  assert.doesNotMatch(html, /Últimos 14 días|Mapa de 28 días|Configurar lo mínimo|FOR YOU TODAY/);
 });
 
 test("NowView expands the inline register only when the day changed", () => {
@@ -74,9 +81,11 @@ test("NowView exposes missing cycle context instead of silently hiding it", () =
   assert.match(html, /Día del ciclo/);
   assert.match(html, /Sin estimar/);
   assert.match(html, /Añadir última fecha/);
+  assert.match(html, /cycle-ring/);
+  assert.match(html, /cycle-phase-timeline/);
 });
 
-test("NowView keeps an existing signal as insight input without restoring the old action flow", () => {
+test("NowView shows plan and feedback for an open moment instead of hiding the action loop", () => {
   const html = NowView({
     profile: null,
     entries: {},
@@ -101,15 +110,18 @@ test("NowView keeps an existing signal as insight input without restoring the ol
 
   assert.match(html, /Lo que Ciclica está viendo/);
   assert.match(html, /Falta saber si el dolor se repite/);
+  assert.match(html, /Qué hacer ahora/);
+  assert.match(html, /Bajar el dolor sin dejar de trabajar/);
+  assert.match(html, /Prueba ahora/);
+  assert.match(html, /¿Te ayudó\?/);
+  assert.match(html, /Bastante/);
+  assert.match(html, /Un poco/);
+  assert.match(html, /open-checkin/);
   assert.match(html, /¿Cómo estuvo hoy respecto a lo normal\?/);
-  assert.doesNotMatch(html, /Prueba ahora|open-checkin|Puede influir|¿Te ayudó\?|Bastante|Un poco|·/);
-  assert.doesNotMatch(html, /Momentos de hoy|Qué puede estar influyendo|Qué hacer ahora/);
 });
 
 test("Shell exposes one product surface without primary navigation", () => {
   const html = Shell({
-    state: {},
-    active: "now",
     content: "<p>contenido</p>",
     modal: "",
     aiModal: "",
@@ -118,4 +130,19 @@ test("Shell exposes one product surface without primary navigation", () => {
 
   assert.match(html, /Ciclica/);
   assert.doesNotMatch(html, /Navegación principal|>Aprendizajes<|>Consulta</);
+});
+
+test("App mounts the check-in drawer alongside the single Now surface", () => {
+  const html = App({
+    profile: null,
+    checkIns: [],
+    entries: {},
+    aiConfig: { provider: "ollama", ollama: { url: "", model: "" }, openai: { apiKey: "", model: "" } },
+  });
+
+  assert.match(html, /checkInLayer/);
+  assert.match(html, /checkInForm/);
+  assert.match(html, /Necesito algo ahora/);
+  assert.match(html, /Un momento, no un formulario diario/);
+  assert.doesNotMatch(html, />Aprendizajes<|>Consulta<|>Biblioteca</);
 });

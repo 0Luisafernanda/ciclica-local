@@ -1,4 +1,4 @@
-export function Shell({ content, modal, aiModal }) {
+export function Shell({ content, modal, aiModal, checkInPanel }) {
   return `
     <div class="desktop-shell" aria-label="Ciclica local">
       <main class="desktop-app single-surface" aria-label="Ciclica">
@@ -30,6 +30,7 @@ export function Shell({ content, modal, aiModal }) {
 
       ${modal || ""}
       ${aiModal || ""}
+      ${checkInPanel || ""}
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </div>
   `;

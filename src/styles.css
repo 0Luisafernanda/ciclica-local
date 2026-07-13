@@ -535,21 +535,28 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -0.04em; }
 .cycle-context-band {
   width: min(680px, 100%);
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin-right: auto;
-  margin-bottom: 14px;
-  margin-left: auto;
+  grid-template-columns: auto 1fr;
+  gap: 8px 18px;
+  align-items: center;
+  margin: 0 auto 14px;
+  padding: 14px 0 16px;
   border-top: 1px solid var(--line-strong);
   border-bottom: 1px solid var(--line-strong);
 }
-.cycle-context-band > div {
+.cycle-context-copy {
   min-width: 0;
-  padding: 11px 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
 }
-.cycle-context-band > div:first-child { padding-left: 0; }
-.cycle-context-band > div + div { border-left: 1px solid var(--line); }
+.cycle-context-copy > div {
+  min-width: 0;
+  padding: 2px 16px;
+}
+.cycle-context-copy > div:first-child { padding-left: 0; }
+.cycle-context-copy > div + div { border-left: 1px solid var(--line); }
 .cycle-context-band strong,
-.cycle-context-band span {
+.cycle-context-band .cycle-context-copy span {
   display: block;
 }
 .cycle-context-band strong {
@@ -558,12 +565,112 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -0.04em; }
   font-size: 16px;
   line-height: 1.15;
 }
-.cycle-context-band span {
+.cycle-context-band .cycle-context-copy span {
   margin-top: 5px;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.35;
 }
+
+.cycle-ring-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+.cycle-ring {
+  width: 72px;
+  height: 72px;
+  display: block;
+}
+.cycle-ring-track,
+.cycle-ring-progress {
+  fill: none;
+  stroke-width: 5.5;
+  stroke-linecap: round;
+}
+.cycle-ring-track { stroke: color-mix(in srgb, var(--accent) 16%, transparent); }
+.cycle-ring-progress {
+  stroke: var(--accent);
+  transition: stroke-dasharray 420ms ease;
+}
+.cycle-ring-wrap[data-phase="menstrual"] .cycle-ring-progress { stroke: var(--warm); }
+.cycle-ring-wrap[data-phase="follicular"] .cycle-ring-progress { stroke: var(--accent); }
+.cycle-ring-wrap[data-phase="ovulatory"] .cycle-ring-progress { stroke: #3f8f86; }
+.cycle-ring-wrap[data-phase="luteal"] .cycle-ring-progress { stroke: #8a6b5d; }
+.cycle-ring-wrap[data-phase="unknown"] .cycle-ring-progress { stroke: var(--muted-soft); }
+.cycle-ring-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  line-height: 1;
+}
+.cycle-ring-label strong {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.04em;
+}
+.cycle-ring-label span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 680;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cycle-phase-timeline {
+  grid-column: 1 / -1;
+  padding-top: 4px;
+}
+.cycle-phase-track {
+  position: relative;
+  display: flex;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--quiet);
+}
+.cycle-phase-segment {
+  display: block;
+  min-width: 0;
+  height: 100%;
+  opacity: 0.38;
+}
+.cycle-phase-segment.is-current { opacity: 1; }
+.cycle-phase-segment.is-menstrual { background: color-mix(in srgb, var(--warm) 78%, white); }
+.cycle-phase-segment.is-follicular { background: color-mix(in srgb, var(--accent) 72%, white); }
+.cycle-phase-segment.is-ovulatory { background: #5aa79c; }
+.cycle-phase-segment.is-luteal { background: #b08a78; }
+.cycle-phase-marker {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border: 2px solid var(--paper);
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.cycle-phase-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--muted-soft);
+  font-size: 10px;
+  font-weight: 680;
+  letter-spacing: 0.02em;
+}
+.cycle-phase-legend .is-current {
+  color: var(--ink-soft);
+}
+
 .cycle-insight-cell strong { font-size: 14px; }
 .cycle-insight-cell span {
   display: -webkit-box;
@@ -605,6 +712,40 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -0.04em; }
   text-transform: uppercase;
 }
 .personal-insight-hero.is-watching h1 { color: var(--ink-soft); }
+
+.moment-cta-band {
+  width: min(680px, 100%);
+  margin: 0 auto 18px;
+  padding: 18px 0 22px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.moment-cta-band h2 {
+  margin: 6px 0 0;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+.moment-cta-band p:not(.section-label) {
+  max-width: 420px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.moment-cta-band .primary-cta { flex-shrink: 0; }
+.moment-action-block {
+  width: min(680px, 100%);
+  margin: 0 auto 8px;
+}
+.moment-action-block .moment-reading,
+.moment-action-block .action-section,
+.moment-action-block .feedback-section {
+  padding: 22px 0;
+}
 
 .daily-register {
   width: min(680px, 100%);
@@ -816,6 +957,8 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -0.04em; }
   .checkin-layer { grid-template-columns: 1fr; }
   .checkin-drawer { grid-column: 1; width: min(100%, 520px); justify-self: end; }
   .report-columns { grid-template-columns: 1fr; gap: 10px; }
+  .cycle-context-band { gap: 10px 14px; }
+  .cycle-context-copy { gap: 12px 0; }
 }
 
 @media (max-width: 560px) {
@@ -832,6 +975,22 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -0.04em; }
   .checkin-head h2 { font-size: 30px; }
   .profile-form { padding: 22px; }
   .daily-register-head { display: grid; align-items: start; }
+  .moment-cta-band { display: grid; align-items: start; gap: 14px; }
+  .moment-cta-band .primary-cta { width: max-content; }
+  .cycle-context-band {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+  .cycle-context-copy {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+  .cycle-context-copy > div { padding: 0; }
+  .cycle-context-copy > div + div {
+    border-left: 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
   .period-start-button { width: max-content; }
   .daily-detail { grid-template-columns: 1fr; gap: 14px; }
   .daily-choice-row { grid-template-columns: 1fr; }
