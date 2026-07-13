@@ -15,10 +15,16 @@ test("NowView keeps cycle context insight moment CTA and daily registration visi
   );
 
   assert.match(html, /Día 10 de 28/);
-  assert.match(html, /cycle-ring/);
+  assert.doesNotMatch(html, /confianza media|Media-baja| · /);
+  assert.match(html, /Fase folicular/);
+  assert.doesNotMatch(html, /probable|posible/);
+  assert.match(html, /cycle-phase-name/);
+  assert.match(html, /cycle-phase-meta/);
+  assert.match(html, /cycle-ring-phase/);
+  assert.match(html, /cycle-phase-legend-item is-current[^>]*>Folicular/);
+  assert.doesNotMatch(html, /Ahora ·|cycle-phase-chip/);
   assert.match(html, /cycle-phase-timeline/);
   assert.match(html, /cycle-phase-marker/);
-  assert.match(html, /Folicular|folicular/i);
   assert.match(html, /Próximo periodo/);
   assert.match(html, /29 de julio/);
   assert.match(html, /Lo que Ciclica está viendo/);
@@ -72,7 +78,7 @@ test("NowView places a personal evidence-based insight at the center", () => {
 
   assert.match(html, /La energía baja aparece junto con poco sueño/);
   assert.match(html, /3 de 3 días con energía baja/);
-  assert.match(html, /confianza media/i);
+  assert.doesNotMatch(html, /confianza media/i);
 });
 
 test("NowView exposes missing cycle context instead of silently hiding it", () => {

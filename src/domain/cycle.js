@@ -31,7 +31,7 @@ export function getCycleEstimate(state, date = new Date()) {
       phase: "menstrual",
       day: cycleDay,
       nextPeriodInDays,
-      headline: `Dia ${cycleDay}: fase menstrual probable`,
+      headline: `Dia ${cycleDay}: fase menstrual`,
       summary: "Ventana de sangrado o recuperacion. Prioriza descanso real, calor local si ayuda y movimiento suave si se siente bien.",
       confidence,
     };
@@ -42,7 +42,7 @@ export function getCycleEstimate(state, date = new Date()) {
       phase: "follicular",
       day: cycleDay,
       nextPeriodInDays,
-      headline: `Dia ${cycleDay}: fase folicular probable`,
+      headline: `Dia ${cycleDay}: fase folicular`,
       summary: "Puede ser una ventana de energia mas estable. Buen momento para planear, retomar fuerza y observar claridad mental.",
       confidence,
     };
@@ -53,7 +53,7 @@ export function getCycleEstimate(state, date = new Date()) {
       phase: "ovulatory",
       day: cycleDay,
       nextPeriodInDays,
-      headline: `Dia ${cycleDay}: ventana ovulatoria posible`,
+      headline: `Dia ${cycleDay}: ventana ovulatoria`,
       summary: "Estimacion corporal, no anticoncepcion. Si no quieres foco en fertilidad, esta ventana queda solo como referencia privada.",
       confidence: contexts.includes("noFertility") ? "Oculta" : confidence,
     };
@@ -63,7 +63,7 @@ export function getCycleEstimate(state, date = new Date()) {
     phase: "luteal",
     day: cycleDay,
     nextPeriodInDays,
-    headline: `Dia ${cycleDay}: fase lutea probable`,
+    headline: `Dia ${cycleDay}: fase lutea`,
     summary: "Algunas personas notan mas sensibilidad, hambre, sueno ligero o menor paciencia. Ciclica observa si esto tambien es cierto para ti.",
     confidence,
   };
@@ -130,7 +130,7 @@ export function getPersonalInsight(state, dateISO = toISODate(new Date())) {
       status: "pattern",
       headline: "La energía baja aparece junto con poco sueño",
       body: "En tus registros, los días de menor energía también tuvieron cinco horas de sueño o menos.",
-      evidence: `Confianza media basada en ${lowEnergyWithShortSleep.length} de ${lowEnergyDays.length} días con energía baja`,
+      evidence: `Visto en ${lowEnergyWithShortSleep.length} de ${lowEnergyDays.length} días con energía baja`,
     };
   }
 
@@ -141,7 +141,7 @@ export function getPersonalInsight(state, dateISO = toISODate(new Date())) {
       status: "pattern",
       headline: "El dolor aparece junto con poco sueño",
       body: "Tus registros conectan dolor de intensidad media o alta con noches de cinco horas o menos.",
-      evidence: `Confianza media basada en ${painWithShortSleep.length} de ${painDays.length} días con dolor`,
+      evidence: `Visto en ${painWithShortSleep.length} de ${painDays.length} días con dolor`,
     };
   }
 
@@ -160,7 +160,7 @@ export function getPersonalInsight(state, dateISO = toISODate(new Date())) {
       status: "pattern",
       headline: `“${repeatedAction.title}” funcionó más de una vez`,
       body: "Este resultado viene de tus respuestas anteriores, no de una recomendación general.",
-      evidence: `Confianza media basada en ${repeatedAction.count} resultados favorables`,
+      evidence: `${repeatedAction.count} veces marcaste que ayudó`,
     };
   }
 
@@ -188,7 +188,7 @@ export function getPersonalInsight(state, dateISO = toISODate(new Date())) {
         body: contextCount >= 2 && contextLabel
           ? `Apareció ${contextLabel} en ${contextCount} de esos momentos.`
           : "Todavía falta contexto para saber qué suele acompañarla.",
-        evidence: `Patrón posible en ${count} de ${checkIns.length} momentos recientes`,
+        evidence: `${count} de ${checkIns.length} momentos recientes`,
       };
     }
   }
@@ -216,7 +216,7 @@ export function getPersonalInsight(state, dateISO = toISODate(new Date())) {
       status: "watching",
       headline: `Falta saber si ${headlineFocus} se repite`,
       body: `Solo hay ${checkIns.length} registro${checkIns.length === 1 ? "" : "s"} de ${focusLabel} ${contextLabel}`,
-      evidence: `Evidencia inicial con ${checkIns.length} momento${checkIns.length === 1 ? "" : "s"} registrado${checkIns.length === 1 ? "" : "s"}`,
+      evidence: `${checkIns.length} momento${checkIns.length === 1 ? "" : "s"} registrado${checkIns.length === 1 ? "" : "s"}`,
     };
   }
 

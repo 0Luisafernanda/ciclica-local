@@ -565,6 +565,18 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -0.04em; }
   font-size: 16px;
   line-height: 1.15;
 }
+.cycle-phase-name {
+  margin-top: 4px !important;
+  font-size: 21px !important;
+  letter-spacing: -0.03em;
+  line-height: 1.15 !important;
+}
+.cycle-phase-meta {
+  margin-top: 8px !important;
+  color: var(--muted);
+  font-size: 12px !important;
+  line-height: 1.4;
+}
 .cycle-context-band .cycle-context-copy span {
   margin-top: 5px;
   color: var(--muted);
@@ -584,20 +596,29 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -0.04em; }
   display: block;
 }
 .cycle-ring-track,
+.cycle-ring-phase,
 .cycle-ring-progress {
   fill: none;
   stroke-width: 5.5;
-  stroke-linecap: round;
 }
-.cycle-ring-track { stroke: color-mix(in srgb, var(--accent) 16%, transparent); }
+.cycle-ring-track { stroke: color-mix(in srgb, var(--ink) 10%, transparent); }
+.cycle-ring-phase {
+  stroke-linecap: butt;
+  opacity: 0.34;
+}
 .cycle-ring-progress {
-  stroke: var(--accent);
+  stroke-linecap: round;
   transition: stroke-dasharray 420ms ease;
 }
+.cycle-ring-wrap[data-phase="menstrual"] .cycle-ring-phase,
 .cycle-ring-wrap[data-phase="menstrual"] .cycle-ring-progress { stroke: var(--warm); }
+.cycle-ring-wrap[data-phase="follicular"] .cycle-ring-phase,
 .cycle-ring-wrap[data-phase="follicular"] .cycle-ring-progress { stroke: var(--accent); }
-.cycle-ring-wrap[data-phase="ovulatory"] .cycle-ring-progress { stroke: #3f8f86; }
-.cycle-ring-wrap[data-phase="luteal"] .cycle-ring-progress { stroke: #8a6b5d; }
+.cycle-ring-wrap[data-phase="ovulatory"] .cycle-ring-phase,
+.cycle-ring-wrap[data-phase="ovulatory"] .cycle-ring-progress { stroke: #1f8f9a; }
+.cycle-ring-wrap[data-phase="luteal"] .cycle-ring-phase,
+.cycle-ring-wrap[data-phase="luteal"] .cycle-ring-progress { stroke: #9a6347; }
+.cycle-ring-wrap[data-phase="unknown"] .cycle-ring-phase,
 .cycle-ring-wrap[data-phase="unknown"] .cycle-ring-progress { stroke: var(--muted-soft); }
 .cycle-ring-label {
   position: absolute;
@@ -623,12 +644,15 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -0.04em; }
 
 .cycle-phase-timeline {
   grid-column: 1 / -1;
-  padding-top: 4px;
+  padding-top: 6px;
+}
+.cycle-phase-track-wrap {
+  position: relative;
+  padding: 4px 0;
 }
 .cycle-phase-track {
-  position: relative;
   display: flex;
-  height: 8px;
+  height: 12px;
   overflow: hidden;
   border-radius: 999px;
   background: var(--quiet);
@@ -637,38 +661,46 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -0.04em; }
   display: block;
   min-width: 0;
   height: 100%;
-  opacity: 0.38;
+  opacity: 0.32;
 }
 .cycle-phase-segment.is-current { opacity: 1; }
-.cycle-phase-segment.is-menstrual { background: color-mix(in srgb, var(--warm) 78%, white); }
-.cycle-phase-segment.is-follicular { background: color-mix(in srgb, var(--accent) 72%, white); }
-.cycle-phase-segment.is-ovulatory { background: #5aa79c; }
-.cycle-phase-segment.is-luteal { background: #b08a78; }
+.cycle-phase-segment.is-menstrual { background: #e08a72; }
+.cycle-phase-segment.is-follicular { background: #4f9b90; }
+.cycle-phase-segment.is-ovulatory { background: #1f8f9a; }
+.cycle-phase-segment.is-luteal { background: #9a6347; }
 .cycle-phase-marker {
   position: absolute;
   top: 50%;
-  width: 12px;
-  height: 12px;
-  margin-left: -6px;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
   border: 2px solid var(--paper);
   border-radius: 50%;
   background: var(--ink);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 20%, transparent);
   transform: translateY(-50%);
   pointer-events: none;
 }
 .cycle-phase-legend {
   display: flex;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 0;
   margin-top: 8px;
   color: var(--muted-soft);
   font-size: 10px;
   font-weight: 680;
   letter-spacing: 0.02em;
 }
-.cycle-phase-legend .is-current {
-  color: var(--ink-soft);
+.cycle-phase-legend-item {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 4px;
+}
+.cycle-phase-legend-item.is-current {
+  color: var(--ink);
+  font-weight: 760;
 }
 
 .cycle-insight-cell strong { font-size: 14px; }

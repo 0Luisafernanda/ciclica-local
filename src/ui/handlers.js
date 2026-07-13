@@ -1,4 +1,4 @@
-import { App } from "../components/App.js?v=ciclica-moment-2";
+import { App } from "../components/App.js?v=ciclica-moment-6";
 import { buildPlainReport } from "../domain/report.js?v=ciclica-value-1";
 import { clamp, toISODate } from "../domain/date.js?v=ciclica-value-1";
 import { getActionPlan } from "../domain/actions.js?v=ciclica-value-1";

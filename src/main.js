@@ -1,4 +1,4 @@
-import { App } from "./components/App.js?v=ciclica-moment-2";
+import { App } from "./components/App.js?v=ciclica-moment-6";
 import { createStore } from "./state/store.js?v=ciclica-value-1";
 import { bindApp } from "./ui/handlers.js?v=ciclica-moment-1";
 

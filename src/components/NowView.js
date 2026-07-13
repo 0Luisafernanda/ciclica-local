@@ -1,4 +1,4 @@
-import { getCycleEstimate, getPersonalInsight } from "../domain/cycle.js?v=ciclica-value-1";
+import { getCycleEstimate, getPersonalInsight } from "../domain/cycle.js?v=ciclica-moment-6";
 import { getMomentInterpretation } from "../domain/actions.js?v=ciclica-value-1";
 import { toISODate } from "../domain/date.js?v=ciclica-value-1";
 import { escapeHTML } from "../utils/html.js?v=ciclica-value-1";
@@ -45,21 +45,26 @@ function renderCycleContext(state, currentDate) {
   const cycleLength = Number(state.profile.cycleLength) || 28;
   const nextDate = addLocalDays(currentDate, estimate.nextPeriodInDays || 0);
   const phaseLabels = {
-    menstrual: "Fase menstrual probable",
-    follicular: "Fase folicular probable",
-    ovulatory: "Ventana ovulatoria posible",
-    luteal: "Fase lútea probable",
+    menstrual: "Fase menstrual",
+    follicular: "Fase folicular",
+    ovulatory: "Ventana ovulatoria",
+    luteal: "Fase lútea",
   };
+  const phaseName = phaseLabels[estimate.phase] || "Fase sin estimar";
+  const irregular =
+    state.profile.regularity !== "regular" || (state.profile.contexts || []).includes("somp");
+  const dayMeta = irregular
+    ? `Día ${estimate.day} de ${cycleLength}, ciclo irregular`
+    : `Día ${estimate.day} de ${cycleLength}`;
 
   return `
-    <section class="cycle-context-band" aria-label="Contexto del ciclo">
+    <section class="cycle-context-band" data-phase="${escapeHTML(estimate.phase)}" aria-label="Contexto del ciclo">
       ${renderCycleRing({ day: estimate.day, cycleLength, phase: estimate.phase })}
       <div class="cycle-context-copy">
-        <div>
+        <div class="cycle-phase-cell">
           <p class="section-label">Tu ciclo</p>
-          <strong>Día ${estimate.day} de ${cycleLength}</strong>
-          <span>${escapeHTML(phaseLabels[estimate.phase] || "Fase sin estimar")}</span>
-          <span>Confianza ${escapeHTML(String(estimate.confidence).toLowerCase())}</span>
+          <strong class="cycle-phase-name">${escapeHTML(phaseName)}</strong>
+          <span class="cycle-phase-meta">${escapeHTML(dayMeta)}</span>
         </div>
         <div>
           <p class="section-label">Próximo periodo</p>
@@ -75,9 +80,21 @@ function renderCycleContext(state, currentDate) {
 function renderCycleRing({ day, cycleLength, phase }) {
   const radius = 30;
   const circumference = 2 * Math.PI * radius;
-  const progress = day ? Math.min(1, Math.max(0, day / cycleLength)) : 0;
-  const dash = (circumference * progress).toFixed(2);
-  const gap = (circumference - Number(dash)).toFixed(2);
+  const length = Math.max(18, Number(cycleLength) || 28);
+  const bounds = getPhaseBounds(length);
+  const ranges = {
+    menstrual: { start: 1, end: bounds.menstrualEnd },
+    follicular: { start: bounds.menstrualEnd + 1, end: bounds.follicularEnd },
+    ovulatory: { start: bounds.follicularEnd + 1, end: bounds.ovulatoryEnd },
+    luteal: { start: bounds.ovulatoryEnd + 1, end: length },
+  };
+  const range = ranges[phase] || { start: 1, end: length };
+  const phaseDays = Math.max(1, range.end - range.start + 1);
+  const phaseArc = (phaseDays / length) * circumference;
+  const phaseOffset = ((range.start - 1) / length) * circumference;
+  const progressDay = day ? Math.min(range.end, Math.max(range.start, day)) : range.start;
+  const progressDays = Math.max(0, progressDay - range.start + 1);
+  const progressArc = (progressDays / length) * circumference;
   const label = day ? String(day) : "—";
 
   return `
@@ -85,9 +102,17 @@ function renderCycleRing({ day, cycleLength, phase }) {
       <svg class="cycle-ring" viewBox="0 0 72 72" role="presentation">
         <circle class="cycle-ring-track" cx="36" cy="36" r="${radius}" />
         <circle
+          class="cycle-ring-phase"
+          cx="36" cy="36" r="${radius}"
+          stroke-dasharray="${phaseArc.toFixed(2)} ${(circumference - phaseArc).toFixed(2)}"
+          stroke-dashoffset="${(-phaseOffset).toFixed(2)}"
+          transform="rotate(-90 36 36)"
+        />
+        <circle
           class="cycle-ring-progress"
           cx="36" cy="36" r="${radius}"
-          stroke-dasharray="${dash} ${gap}"
+          stroke-dasharray="${progressArc.toFixed(2)} ${(circumference - progressArc).toFixed(2)}"
+          stroke-dashoffset="${(-phaseOffset).toFixed(2)}"
           transform="rotate(-90 36 36)"
         />
       </svg>
@@ -110,23 +135,33 @@ function renderPhaseTimeline({ day, cycleLength, phase }) {
   const markerLeft = day ? Math.min(100, Math.max(0, ((day - 0.5) / cycleLength) * 100)) : null;
 
   return `
-    <div class="cycle-phase-timeline" aria-hidden="true">
-      <div class="cycle-phase-track">
+    <div class="cycle-phase-timeline" aria-label="Fases del ciclo">
+      <div class="cycle-phase-track-wrap">
+        <div class="cycle-phase-track">
+          ${segments
+            .map(
+              (segment) => `
+            <span
+              class="cycle-phase-segment is-${segment.id}${phase === segment.id ? " is-current" : ""}"
+              style="flex: ${segment.days} 1 0%"
+            ></span>
+          `,
+            )
+            .join("")}
+        </div>
+        ${markerLeft == null ? "" : `<i class="cycle-phase-marker" style="left: ${markerLeft.toFixed(2)}%"></i>`}
+      </div>
+      <div class="cycle-phase-legend">
         ${segments
           .map(
             (segment) => `
           <span
-            class="cycle-phase-segment is-${segment.id}${phase === segment.id ? " is-current" : ""}"
-            style="flex: ${segment.days} 1 0"
-            title="${segment.label}"
-          ></span>
+            class="cycle-phase-legend-item${phase === segment.id ? " is-current" : ""}"
+            style="flex: ${segment.days} 1 0%"
+          >${segment.label}</span>
         `,
           )
           .join("")}
-        ${markerLeft == null ? "" : `<i class="cycle-phase-marker" style="left: ${markerLeft.toFixed(2)}%"></i>`}
-      </div>
-      <div class="cycle-phase-legend">
-        ${segments.map((segment) => `<span class="${phase === segment.id ? "is-current" : ""}">${segment.label}</span>`).join("")}
       </div>
     </div>
   `;
@@ -301,7 +336,7 @@ function describeMomentMeta(checkIn) {
   };
   const focus = focusLabels[checkIn.focus] || "esta señal";
   const context = contextLabels[checkIn.context] || "en este contexto";
-  return `Intensidad ${checkIn.intensity}/10 · ${focus} · ${context}`;
+  return `Intensidad ${checkIn.intensity}/10, ${focus}, ${context}`;
 }
 
 function feedbackLabel(feedback) {
