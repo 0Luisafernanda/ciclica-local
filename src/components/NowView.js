@@ -1,4 +1,4 @@
-import { getCycleEstimate, getPersonalInsight } from "../domain/cycle.js?v=ciclica-moment-9";
+import { getCycleEstimate, getPersonalInsight } from "../domain/cycle.js?v=ciclica-moment-28";
 import { getMomentInterpretation } from "../domain/actions.js?v=ciclica-value-1";
 import { toISODate } from "../domain/date.js?v=ciclica-value-1";
 import { escapeHTML } from "../utils/html.js?v=ciclica-value-1";
@@ -280,23 +280,58 @@ function getActiveCheckIn(checkIns) {
 }
 
 function describeMomentMeta(checkIn) {
-  const focusLabels = {
-    pain: "dolor",
-    lowEnergy: "sin energía",
+  const symptomLabels = {
+    cramps: "cólicos",
+    backPain: "espalda",
+    headache: "cabeza",
+    legs: "piernas",
+    breast: "pechos",
+    lowEnergy: "energía baja",
     anxious: "ansiedad",
     sensitive: "sensibilidad",
     bloated: "hinchazón",
-    focus: "dificultad para concentrarte",
+    digestion: "digestión",
+    focus: "concentración",
+    shortSleep: "sueño corto",
+    stressed: "estrés",
+    other: "otro",
   };
-  const contextLabels = {
-    work: "trabajando",
-    home: "en casa",
-    outside: "fuera",
-    resting: "descansando",
+  const bleedingLabels = {
+    light: "flujo leve",
+    medium: "flujo medio",
+    heavy: "flujo abundante",
   };
-  const focus = focusLabels[checkIn.focus] || "esta señal";
-  const context = contextLabels[checkIn.context] || "en este contexto";
-  return `Intensidad ${checkIn.intensity}/10, ${focus}, ${context}`;
+  const colorLabels = {
+    bright: "rojo vivo",
+    dark: "oscuro",
+    brown: "marrón",
+    pink: "rosado",
+  };
+  const odorLabels = {
+    normal: "olor normal",
+    strong: "olor fuerte",
+    unusual: "olor distinto",
+  };
+  const bits = [];
+  if (checkIn.cycleDay != null && Number.isFinite(Number(checkIn.cycleDay))) {
+    bits.push(`Día ${checkIn.cycleDay}`);
+  }
+  if (checkIn.bleeding && checkIn.bleeding !== "none") {
+    bits.push(bleedingLabels[checkIn.bleeding] || "sangrado");
+    if (colorLabels[checkIn.bleedingColor]) bits.push(colorLabels[checkIn.bleedingColor]);
+    if (odorLabels[checkIn.bleedingOdor]) bits.push(odorLabels[checkIn.bleedingOdor]);
+  }
+  const symptoms = Array.isArray(checkIn.symptoms) ? checkIn.symptoms : [];
+  symptoms
+    .filter((item) => Number(item.intensity) > 0)
+    .slice(0, 4)
+    .forEach((item) => {
+      bits.push(`${symptomLabels[item.id] || item.id} ${item.intensity}/10`);
+    });
+  if (!symptoms.length && checkIn.focus) {
+    bits.push(`${symptomLabels[checkIn.focus] || checkIn.focus} ${checkIn.intensity}/10`);
+  }
+  return bits.join(" · ") || "Registro guardado";
 }
 
 function feedbackLabel(feedback) {
