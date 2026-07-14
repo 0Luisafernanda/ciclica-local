@@ -1,6 +1,6 @@
 import { addDays, clamp, daysBetween, parseISODate, startOfDay, toISODate } from "./date.js?v=ciclica-value-1";
 import { moodLabels, bleedingLabels, skinLabels } from "../data/labels.js?v=ciclica-value-1";
-import { symptomFocus } from "../domain/actions.js?v=ciclica-moment-28";
+import { symptomFocus } from "../domain/actions.js?v=ciclica-moment-31";
 
 export function getEntries(state) {
   return Object.values(state.entries).sort((a, b) => a.date.localeCompare(b.date));

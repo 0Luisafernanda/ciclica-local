@@ -1,4 +1,4 @@
-import { getCycleEstimate, getPersonalInsight } from "../domain/cycle.js?v=ciclica-moment-28";
+import { getCycleEstimate, getPersonalInsight } from "../domain/cycle.js?v=ciclica-moment-31";
 import { getMomentInterpretation } from "../domain/actions.js?v=ciclica-value-1";
 import { toISODate } from "../domain/date.js?v=ciclica-value-1";
 import { escapeHTML } from "../utils/html.js?v=ciclica-value-1";

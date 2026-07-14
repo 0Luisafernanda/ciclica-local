@@ -2,10 +2,11 @@ import {
   bleedingColorOptions,
   bleedingOdorOptions,
   bleedingOptions,
+  focusOptions,
   intensityLevels,
   symptomCatalog,
-} from "../domain/actions.js?v=ciclica-moment-28";
-import { getCycleEstimate } from "../domain/cycle.js?v=ciclica-moment-28";
+} from "../domain/actions.js?v=ciclica-moment-31";
+import { getCycleEstimate } from "../domain/cycle.js?v=ciclica-moment-31";
 
 const phaseShort = {
   menstrual: "menstrual",
@@ -39,6 +40,13 @@ export function CheckInPanel(state = {}) {
 
         <form class="checkin-form" id="checkInForm">
           <div class="checkin-scroll">
+            <section class="checkin-categories" aria-label="Qué sientes hoy">
+              <p class="checkin-quiet-label">Qué sientes hoy</p>
+              <div class="checkin-category-row">
+                ${focusOptions.map((item) => categoryChip(item.id, item.label)).join("")}
+              </div>
+            </section>
+
             <section class="checkin-log" aria-label="Registro del momento">
               <div class="checkin-symptom" data-field="bleeding">
                 <p class="checkin-symptom-name">Sangrado</p>
@@ -68,21 +76,20 @@ export function CheckInPanel(state = {}) {
                 </div>
               </div>
 
-              ${symptomCatalog.map((item) => symptomRow(item)).join("")}
+              <div class="checkin-symptom-detail">
+                ${symptomCatalog.map((item) => symptomRow(item)).join("")}
 
-              <label class="checkin-line checkin-other-note">
-                <span class="sr-only">Detalle de Otro</span>
-                <input type="text" name="otherNote" maxlength="120" placeholder="Detalle de Otro…" autocomplete="off" />
-              </label>
+                <label class="checkin-line checkin-other-note">
+                  <span class="sr-only">Describe qué sientes</span>
+                  <input type="text" name="otherNote" maxlength="120" placeholder="Escribe qué sientes…" autocomplete="off" />
+                </label>
+              </div>
+
+              <p class="checkin-empty-hint">Elige arriba qué sientes para ver el detalle.</p>
             </section>
           </div>
 
           <footer class="checkin-foot">
-            <div class="checkin-time" role="radiogroup" aria-label="Minutos disponibles">
-              ${timeChoice("availableTime", "2", "2′", true)}
-              ${timeChoice("availableTime", "10", "10′")}
-              ${timeChoice("availableTime", "30", "30′")}
-            </div>
             <button class="checkin-go" type="submit">Continuar</button>
           </footer>
         </form>
@@ -91,9 +98,9 @@ export function CheckInPanel(state = {}) {
   `;
 }
 
-function symptomRow({ id, label }) {
+function symptomRow({ id, label, focus }) {
   return `
-    <div class="checkin-symptom" data-symptom="${id}">
+    <div class="checkin-symptom" data-symptom="${id}" data-focus="${focus}">
       <p class="checkin-symptom-name">${label}</p>
       <div class="checkin-symptom-levels" role="radiogroup" aria-label="${label}">
         ${intensityLevels.map((level, index) =>
@@ -104,18 +111,18 @@ function symptomRow({ id, label }) {
   `;
 }
 
-function levelChoice(name, value, label, checked = false) {
+function categoryChip(value, label) {
   return `
-    <label class="checkin-level">
-      <input type="radio" name="${name}" value="${value}" ${checked ? "checked" : ""} />
+    <label class="checkin-category-chip">
+      <input type="checkbox" name="categories" value="${value}" />
       <span>${label}</span>
     </label>
   `;
 }
 
-function timeChoice(name, value, label, checked = false) {
+function levelChoice(name, value, label, checked = false) {
   return `
-    <label class="checkin-time-opt">
+    <label class="checkin-level">
       <input type="radio" name="${name}" value="${value}" ${checked ? "checked" : ""} />
       <span>${label}</span>
     </label>

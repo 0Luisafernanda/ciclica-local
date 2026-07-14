@@ -14,7 +14,7 @@ export function AiConfigModal(state) {
         <div class="modal-head">
           <div>
             <p class="micro-label">Motor de recomendaciones</p>
-            <h3>Elegí dónde corre la inferencia</h3>
+            <h3>Elige dónde corre la inferencia</h3>
           </div>
           <button class="icon-button" data-action="close-ai-modal" type="button" aria-label="Cerrar">×</button>
         </div>

@@ -522,27 +522,46 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -0.04em; }
 .checkin-form:has(input[name="bleeding"][value="heavy"]:checked) .checkin-bleeding-detail {
   display: contents;
 }
-.checkin-segmented {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
+
+.checkin-categories { margin-bottom: 4px; }
+.checkin-category-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.checkin-category-chip { position: relative; cursor: pointer; }
+.checkin-category-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.checkin-category-chip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 13px;
+  border-radius: 999px;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 0 0 1px rgba(22, 56, 58, 0.1);
+  font-size: 13px;
+  font-weight: 620;
+  transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
 }
-.checkin-segmented-5 {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-.checkin-segmented .checkin-time-opt span {
-  width: 100%;
-  min-height: 36px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(22, 56, 58, 0.08);
-  font-size: 11px;
-}
-.checkin-segmented .checkin-time-opt input:checked + span {
+.checkin-category-chip:hover span { background: #fff; }
+.checkin-category-chip input:checked + span {
   color: #fff;
   background: var(--accent);
   box-shadow: none;
 }
+
+.checkin-symptom-detail { display: grid; gap: 0; }
+.checkin-symptom[data-focus] { display: none; }
+.checkin-form:has(input[name="categories"][value="pain"]:checked) .checkin-symptom[data-focus="pain"],
+.checkin-form:has(input[name="categories"][value="lowEnergy"]:checked) .checkin-symptom[data-focus="lowEnergy"],
+.checkin-form:has(input[name="categories"][value="anxious"]:checked) .checkin-symptom[data-focus="anxious"],
+.checkin-form:has(input[name="categories"][value="sensitive"]:checked) .checkin-symptom[data-focus="sensitive"],
+.checkin-form:has(input[name="categories"][value="bloated"]:checked) .checkin-symptom[data-focus="bloated"],
+.checkin-form:has(input[name="categories"][value="digestion"]:checked) .checkin-symptom[data-focus="digestion"],
+.checkin-form:has(input[name="categories"][value="focus"]:checked) .checkin-symptom[data-focus="focus"],
+.checkin-form:has(input[name="categories"][value="other"]:checked) .checkin-symptom[data-focus="other"] {
+  display: grid;
+}
+.checkin-empty-hint { margin: 14px 0 4px; color: var(--muted); font-size: 12.5px; }
+.checkin-form:has(input[name="categories"]:checked) .checkin-empty-hint { display: none; }
+
 .checkin-symptom-list {
   display: grid;
   gap: 0;
@@ -785,35 +804,6 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -0.04em; }
   border-top: 1px solid rgba(22, 56, 58, 0.08);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.96));
   backdrop-filter: blur(18px);
-}
-.checkin-time {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-}
-.checkin-time-opt {
-  position: relative;
-  cursor: pointer;
-}
-.checkin-time-opt input { position: absolute; opacity: 0; pointer-events: none; }
-.checkin-time-opt span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 48px;
-  min-height: 30px;
-  padding: 0 10px;
-  border-radius: 999px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-  transition: background 140ms ease, color 140ms ease;
-}
-.checkin-time-opt:hover span { color: var(--ink-soft); }
-.checkin-time-opt input:checked + span {
-  color: var(--accent-dark);
-  background: var(--accent-soft);
 }
 .checkin-go {
   width: 100%;

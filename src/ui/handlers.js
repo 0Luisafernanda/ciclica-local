@@ -1,8 +1,8 @@
-import { App } from "../components/App.js?v=ciclica-moment-28";
+import { App } from "../components/App.js?v=ciclica-moment-31";
 import { buildPlainReport } from "../domain/report.js?v=ciclica-value-1";
 import { clamp, toISODate } from "../domain/date.js?v=ciclica-value-1";
-import { getActionPlan, pickPrimarySymptom, symptomCatalog } from "../domain/actions.js?v=ciclica-moment-28";
-import { getCycleEstimate, getCycleNumber } from "../domain/cycle.js?v=ciclica-moment-28";
+import { getActionPlan, pickPrimarySymptom, symptomCatalog } from "../domain/actions.js?v=ciclica-moment-31";
+import { getCycleEstimate, getCycleNumber } from "../domain/cycle.js?v=ciclica-moment-31";
 import { listOllamaModels, generateWithOllama, generateWithOpenAI, generateWithAI, resolveAIProvider } from "../services/aiProvider.js?v=ciclica-value-1";
 import { buildRecommendationMessages, parseRecommendations } from "../services/recommendations.js?v=ciclica-value-1";
 
@@ -118,10 +118,16 @@ export function bindApp(root, store) {
       checkInForm.querySelectorAll("input[name^='symptom:']").forEach((input) => {
         if (input.value === "0") input.checked = true;
       });
+      checkInForm.querySelectorAll("input[name='categories']").forEach((input) => {
+        input.checked = false;
+      });
       const preferred = focus === "pain" || !focus ? "cramps" : focus;
       const match = checkInForm.querySelector(`input[name='symptom:${preferred}'][value='5']`)
         || checkInForm.querySelector(`input[name='symptom:cramps'][value='5']`);
       if (match) match.checked = true;
+      const preferredFocus = symptomCatalog.find((item) => item.id === preferred)?.focus || "pain";
+      const category = checkInForm.querySelector(`input[name='categories'][value='${preferredFocus}']`);
+      if (category) category.checked = true;
       checkInLayer.classList.add("is-open");
       checkInLayer.setAttribute("aria-hidden", "false");
       document.body.classList.add("drawer-open");
