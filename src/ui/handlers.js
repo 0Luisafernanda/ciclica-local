@@ -1,7 +1,8 @@
-import { App } from "../components/App.js?v=ciclica-moment-15";
+import { App } from "../components/App.js?v=ciclica-moment-28";
 import { buildPlainReport } from "../domain/report.js?v=ciclica-value-1";
 import { clamp, toISODate } from "../domain/date.js?v=ciclica-value-1";
-import { getActionPlan } from "../domain/actions.js?v=ciclica-value-1";
+import { getActionPlan, pickPrimarySymptom, symptomCatalog } from "../domain/actions.js?v=ciclica-moment-28";
+import { getCycleEstimate, getCycleNumber } from "../domain/cycle.js?v=ciclica-moment-28";
 import { listOllamaModels, generateWithOllama, generateWithOpenAI, generateWithAI, resolveAIProvider } from "../services/aiProvider.js?v=ciclica-value-1";
 import { buildRecommendationMessages, parseRecommendations } from "../services/recommendations.js?v=ciclica-value-1";
 
@@ -114,14 +115,17 @@ export function bindApp(root, store) {
 
     const openCheckIn = (focus) => {
       if (!checkInLayer || !checkInForm) return;
-      if (focus) {
-        const selected = checkInForm.querySelector(`input[name='focus'][value='${focus}']`);
-        if (selected) selected.checked = true;
-      }
+      checkInForm.querySelectorAll("input[name^='symptom:']").forEach((input) => {
+        if (input.value === "0") input.checked = true;
+      });
+      const preferred = focus === "pain" || !focus ? "cramps" : focus;
+      const match = checkInForm.querySelector(`input[name='symptom:${preferred}'][value='5']`)
+        || checkInForm.querySelector(`input[name='symptom:cramps'][value='5']`);
+      if (match) match.checked = true;
       checkInLayer.classList.add("is-open");
       checkInLayer.setAttribute("aria-hidden", "false");
       document.body.classList.add("drawer-open");
-      window.setTimeout(() => checkInForm.querySelector("input[name='intensity']")?.focus(), 40);
+      window.setTimeout(() => checkInForm.querySelector("input[name='bleeding']")?.focus(), 40);
     };
 
     const closeCheckIn = () => {
@@ -137,23 +141,45 @@ export function bindApp(root, store) {
       button.addEventListener("click", closeCheckIn);
     });
 
-    checkInForm?.querySelector("input[name='intensity']")?.addEventListener("input", (event) => {
-      const output = checkInForm.querySelector("[data-checkin-intensity]");
-      if (output) output.textContent = event.target.value;
-    });
-
     checkInForm?.addEventListener("submit", (event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       const now = new Date();
+      const symptoms = symptomCatalog
+        .map(({ id }) => {
+          const intensity = Number(form.get(`symptom:${id}`) || 0);
+          return intensity > 0 ? { id, intensity } : null;
+        })
+        .filter(Boolean);
+      const bleeding = String(form.get("bleeding") || "none");
+      const bleedingColor = bleeding === "none" ? "" : String(form.get("bleedingColor") || "");
+      const bleedingOdor = bleeding === "none" ? "" : String(form.get("bleedingOdor") || "");
+      const otherNote = String(form.get("otherNote") || "").trim();
+      const primary = pickPrimarySymptom(symptoms);
+      const companions = [];
+      if (symptoms.some((item) => item.id === "shortSleep")) companions.push("shortSleep");
+      if (symptoms.some((item) => item.id === "stressed")) companions.push("stressed");
+      if (bleeding !== "none") companions.push("bleeding");
+      if (otherNote && !companions.includes("other")) companions.push("other");
+      const estimate = getCycleEstimate(store.getState(), now);
       const draft = {
         id: globalThis.crypto?.randomUUID?.() || `moment-${now.getTime()}`,
         createdAt: now.toISOString(),
-        focus: String(form.get("focus") || "pain"),
-        intensity: clamp(Number(form.get("intensity")) || 5, 1, 10),
-        context: String(form.get("context") || "work"),
+        date: toISODate(now),
+        bleeding,
+        bleedingColor,
+        bleedingOdor,
+        symptoms,
+        signals: primary.signals.length ? primary.signals : bleeding !== "none" ? ["pain"] : ["other"],
+        focus: primary.symptomId ? primary.focus : bleeding !== "none" ? "pain" : "other",
+        intensity: primary.symptomId ? primary.intensity : bleeding !== "none" ? 5 : 5,
         availableTime: String(form.get("availableTime") || "2"),
-        note: String(form.get("note") || "").trim(),
+        companions,
+        note: otherNote,
+        cycleDay: estimate.day != null && Number.isFinite(Number(estimate.day)) ? Number(estimate.day) : null,
+        phase: estimate.phase && estimate.phase !== "unknown" ? estimate.phase : null,
+        cyclePhase: estimate.phase && estimate.phase !== "unknown" ? estimate.phase : null,
+        cycleNumber: getCycleNumber(store.getState(), toISODate(now)),
       };
       const checkIn = { ...draft, action: getActionPlan(draft), feedback: null };
       const date = toISODate(now);
@@ -167,7 +193,7 @@ export function bindApp(root, store) {
         },
       }));
       closeCheckIn();
-      toast(root, "Momento guardado. Ciclica preparó una acción para ahora.");
+      toast(root, "Guardado. Hay una acción lista.");
     });
 
     root.querySelectorAll("[data-action='start-action']").forEach((button) => {
@@ -508,10 +534,41 @@ export function mergeMomentIntoEntry(existing, checkIn, date) {
     updatedAt: checkIn.createdAt || new Date().toISOString(),
   };
 
-  if (checkIn.focus === "pain") entry.pain = clamp(Number(checkIn.intensity) || 0, 0, 10);
-  if (checkIn.focus === "lowEnergy") entry.energy = clamp(10 - (Number(checkIn.intensity) || 0), 0, 10);
-  if (checkIn.focus === "anxious") entry.mood = "anxious";
-  if (checkIn.focus === "sensitive") entry.mood = "sensitive";
+  if (checkIn.bleeding && checkIn.bleeding !== "none") {
+    entry.bleeding = checkIn.bleeding;
+  }
+  if (checkIn.bleedingColor) entry.bleedingColor = checkIn.bleedingColor;
+  if (checkIn.bleedingOdor) entry.bleedingOdor = checkIn.bleedingOdor;
+
+  const symptoms = Array.isArray(checkIn.symptoms) ? checkIn.symptoms : [];
+  const byId = Object.fromEntries(symptoms.map((item) => [item.id, Number(item.intensity) || 0]));
+  const companions = Array.isArray(checkIn.companions) ? checkIn.companions : [];
+  const signals = Array.isArray(checkIn.signals) && checkIn.signals.length
+    ? checkIn.signals
+    : checkIn.focus
+      ? [checkIn.focus]
+      : [];
+
+  const crampIntensity = Math.max(byId.cramps || 0, byId.headache || 0, byId.backPain || 0, byId.legs || 0);
+  if (crampIntensity > 0) entry.pain = clamp(crampIntensity, 0, 10);
+  else if (signals.includes("pain")) entry.pain = clamp(Number(checkIn.intensity) || 0, 0, 10);
+
+  if (byId.lowEnergy > 0) entry.energy = clamp(10 - byId.lowEnergy, 0, 10);
+  else if (signals.includes("lowEnergy")) entry.energy = clamp(10 - (Number(checkIn.intensity) || 0), 0, 10);
+
+  if (byId.anxious > 0 || byId.stressed > 0) entry.mood = "anxious";
+  else if (byId.sensitive > 0 || byId.breast > 0) entry.mood = "sensitive";
+  else if (signals.includes("anxious")) entry.mood = "anxious";
+  else if (signals.includes("sensitive") && entry.mood === "calm") entry.mood = "sensitive";
+
+  if (byId.shortSleep > 0) {
+    entry.sleep = clamp(Math.round(8 - byId.shortSleep * 0.55), 1, 8);
+  } else if (companions.includes("shortSleep")) {
+    entry.sleep = Math.min(Number(entry.sleep) || 7, 4);
+  }
+
+  if (companions.includes("bleeding") && entry.bleeding === "none") entry.bleeding = "light";
+
   return entry;
 }
 

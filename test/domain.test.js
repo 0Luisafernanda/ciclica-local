@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { getCycleEstimate, getFindings, getInsight, getPersonalInsight } from "../src/domain/cycle.js";
+import { getCycleEstimate, getCycleNumber, getFindings, getInsight, getPersonalInsight, getPeriodStartDates } from "../src/domain/cycle.js";
 import { buildPlainReport, buildReportHTML } from "../src/domain/report.js";
 
 const baseState = {
@@ -15,6 +15,22 @@ const baseState = {
   },
   entries: {},
 };
+
+test("cycle number follows period starts instead of calendar weeks", () => {
+  const state = {
+    ...baseState,
+    profile: { ...baseState.profile, lastPeriod: "2026-05-01" },
+    entries: {
+      "2026-05-01": { date: "2026-05-01", periodStarted: true },
+      "2026-05-30": { date: "2026-05-30", periodStarted: true },
+    },
+  };
+
+  assert.deepEqual(getPeriodStartDates(state), ["2026-05-01", "2026-05-30"]);
+  assert.equal(getCycleNumber(state, "2026-05-10"), 1);
+  assert.equal(getCycleNumber(state, "2026-06-02"), 2);
+  assert.equal(getCycleNumber(state, "2026-04-20"), null);
+});
 
 test("cycle estimate uses transparent confidence and hides ovulation confidence when fertility focus is disabled", () => {
   const state = {
@@ -96,10 +112,10 @@ test("personal insight connects low energy with short sleep using observed evide
 
   const insight = getPersonalInsight(state, "2026-06-06");
 
-  assert.equal(insight.status, "pattern");
+  assert.equal(insight.status, "watching");
   assert.match(insight.headline, /energía baja.*poco sueño/i);
   assert.match(insight.evidence, /3 de 3 días con energía baja/i);
-  assert.match(insight.body, /tus registros/i);
+  assert.match(insight.body, /otro ciclo|se vuelve patrón/i);
 });
 
 test("personal insight admits cold start and says what Ciclica is observing", () => {
@@ -107,16 +123,97 @@ test("personal insight admits cold start and says what Ciclica is observing", ()
     {
       ...baseState,
       entries: {},
-      checkIns: [{ id: "one", focus: "pain", context: "work", intensity: 6, createdAt: "2026-06-03T12:00:00Z" }],
+      checkIns: [{ id: "one", focus: "pain", intensity: 6, createdAt: "2026-06-03T12:00:00Z" }],
     },
     "2026-06-03",
   );
 
   assert.equal(insight.status, "watching");
   assert.match(insight.headline, /falta saber.*dolor.*se repite/i);
-  assert.match(insight.body, /dolor.*trabajando/i);
+  assert.match(insight.body, /Solo hay 1 registro de dolor/i);
   assert.match(insight.evidence, /1 momento/i);
   assert.doesNotMatch(insight.body, /fase folicular|energía más estable/i);
+});
+
+test("personal insight treats same-cycle companion links as emerging, not patterns", () => {
+  const insight = getPersonalInsight(
+    {
+      ...baseState,
+      entries: {},
+      checkIns: [
+        { id: "a", focus: "anxious", intensity: 6, companions: ["stressed"], phase: "luteal", cycleDay: 22, cycleNumber: 1, date: "2026-06-01", createdAt: "2026-06-01T12:00:00Z" },
+        { id: "b", focus: "anxious", intensity: 7, companions: ["stressed"], phase: "luteal", cycleDay: 23, cycleNumber: 1, date: "2026-06-02", createdAt: "2026-06-02T12:00:00Z" },
+        { id: "c", focus: "pain", intensity: 4, companions: [], phase: "follicular", cycleDay: 8, cycleNumber: 1, date: "2026-06-03", createdAt: "2026-06-03T12:00:00Z" },
+      ],
+    },
+    "2026-06-03",
+  );
+
+  assert.equal(insight.status, "watching");
+  assert.match(insight.headline, /estrés.*ansiedad/i);
+  assert.match(insight.body, /otro ciclo|se vuelve patrón/i);
+  assert.match(insight.evidence, /1 ciclo/);
+});
+
+test("personal insight names a repeating multi-companion combination within one cycle as emerging", () => {
+  const insight = getPersonalInsight(
+    {
+      ...baseState,
+      entries: {},
+      checkIns: [
+        { id: "a", focus: "pain", intensity: 8, companions: ["shortSleep", "stressed"], phase: "luteal", cycleDay: 20, cycleNumber: 1, date: "2026-06-01", createdAt: "2026-06-01T12:00:00Z" },
+        { id: "b", focus: "pain", intensity: 9, companions: ["shortSleep", "stressed"], phase: "luteal", cycleDay: 21, cycleNumber: 1, date: "2026-06-02", createdAt: "2026-06-02T12:00:00Z" },
+        { id: "c", focus: "anxious", intensity: 5, companions: ["bleeding"], phase: "menstrual", cycleDay: 2, cycleNumber: 1, date: "2026-06-03", createdAt: "2026-06-03T12:00:00Z" },
+      ],
+    },
+    "2026-06-03",
+  );
+
+  assert.equal(insight.status, "watching");
+  assert.match(insight.headline, /dolor.*sueño corto y estrés|dolor.*estrés y sueño corto/i);
+  assert.match(insight.evidence, /1 ciclo/);
+});
+
+test("personal insight treats same-cycle phase clustering as emerging", () => {
+  const insight = getPersonalInsight(
+    {
+      ...baseState,
+      entries: {},
+      checkIns: [
+        { id: "a", focus: "pain", intensity: 8, companions: [], phase: "menstrual", cycleDay: 1, cycleNumber: 1, date: "2026-06-01", createdAt: "2026-06-01T12:00:00Z" },
+        { id: "b", focus: "pain", intensity: 9, companions: [], phase: "menstrual", cycleDay: 2, cycleNumber: 1, date: "2026-06-02", createdAt: "2026-06-02T12:00:00Z" },
+        { id: "c", focus: "pain", intensity: 7, companions: [], phase: "menstrual", cycleDay: 3, cycleNumber: 1, date: "2026-06-03", createdAt: "2026-06-03T12:00:00Z" },
+      ],
+    },
+    "2026-06-03",
+  );
+
+  assert.equal(insight.status, "watching");
+  assert.match(insight.headline, /dolor.*menstrual/i);
+  assert.match(insight.body, /otro ciclo|se vuelve patrón/i);
+});
+
+test("personal insight requires distinct cycles for a defensive menstrual pattern", () => {
+  const insight = getPersonalInsight(
+    {
+      ...baseState,
+      profile: { ...baseState.profile, lastPeriod: "2026-05-01" },
+      entries: {
+        "2026-05-01": { date: "2026-05-01", periodStarted: true },
+        "2026-05-30": { date: "2026-05-30", periodStarted: true },
+      },
+      checkIns: [
+        { id: "a", focus: "pain", intensity: 8, companions: [], phase: "menstrual", cycleDay: 2, cycleNumber: 1, date: "2026-05-02", createdAt: "2026-05-02T12:00:00Z" },
+        { id: "b", focus: "pain", intensity: 9, companions: [], phase: "menstrual", cycleDay: 1, cycleNumber: 2, date: "2026-05-30", createdAt: "2026-05-30T12:00:00Z" },
+        { id: "c", focus: "pain", intensity: 7, companions: [], phase: "menstrual", cycleDay: 2, cycleNumber: 2, date: "2026-05-31", createdAt: "2026-05-31T12:00:00Z" },
+      ],
+    },
+    "2026-06-03",
+  );
+
+  assert.equal(insight.status, "pattern");
+  assert.match(insight.headline, /dolor.*menstrual.*ciclo tras ciclo/i);
+  assert.match(insight.evidence, /2 ciclos/);
 });
 
 test("findings keep clinical language cautious for SOMP/SOP and high pain", () => {

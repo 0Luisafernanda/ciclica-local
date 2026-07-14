@@ -15,6 +15,18 @@ test("mergeMomentIntoEntry keeps existing daily data and maps the current focus"
   assert.equal(entry.note, "ahora");
 });
 
+test("mergeMomentIntoEntry maps companions into comparable entry signals", () => {
+  const entry = mergeMomentIntoEntry(
+    null,
+    { focus: "pain", intensity: 7, companions: ["shortSleep", "bleeding"], note: "", createdAt: "2026-07-09T15:00:00.000Z" },
+    "2026-07-09",
+  );
+
+  assert.equal(entry.pain, 7);
+  assert.equal(entry.sleep, 4);
+  assert.equal(entry.bleeding, "light");
+});
+
 test("mergeMomentIntoEntry maps low energy and anxious focus without inventing other values", () => {
   const energyEntry = mergeMomentIntoEntry(null, { focus: "lowEnergy", intensity: 7, note: "" }, "2026-07-09");
   const moodEntry = mergeMomentIntoEntry(energyEntry, { focus: "anxious", intensity: 5, note: "" }, "2026-07-09");
