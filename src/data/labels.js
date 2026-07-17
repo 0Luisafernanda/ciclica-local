@@ -27,10 +27,3 @@ export const contextLabels = {
   perimenopause: "perimenopausia",
   noFertility: "sin foco en fertilidad",
 };
-
-export const views = [
-  { id: "now", label: "Ahora" },
-  { id: "learning", label: "Aprendizajes" },
-  { id: "consult", label: "Consulta" },
-  { id: "library", label: "Transparencia" },
-];

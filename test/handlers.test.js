@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getExportState, mergeDailyLogIntoEntry, mergeMomentIntoEntry, toggleDailySignal } from "../src/ui/handlers.js";
+import { getExportState, mergeDailyLogIntoEntry, mergeMomentIntoEntry } from "../src/ui/handlers.js";
 
 test("mergeMomentIntoEntry keeps existing daily data and maps the current focus", () => {
   const entry = mergeMomentIntoEntry(
@@ -62,11 +62,6 @@ test("daily log still honors legacy signal and intensity details", () => {
   assert.equal(entry.pain, 6);
   assert.equal(entry.sleep, 4);
   assert.equal(entry.note, "previa");
-});
-
-test("daily signal toggle adds and removes without duplicates", () => {
-  assert.deepEqual(toggleDailySignal(["pain"], "sleep"), ["pain", "sleep"]);
-  assert.deepEqual(toggleDailySignal(["pain", "sleep"], "pain"), ["sleep"]);
 });
 
 test("getExportState excludes the OpenAI API key without mutating live state", () => {

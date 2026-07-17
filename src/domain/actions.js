@@ -57,27 +57,10 @@ export const intensityLevels = [
   { value: 10, label: "Intensa" },
 ];
 
-export const registerCompanions = [
-  { id: "shortSleep", label: "Sueño corto" },
-  { id: "stressed", label: "Estrés" },
-  { id: "hungry", label: "Poca comida" },
-  { id: "bleeding", label: "Sangrado" },
-];
-
-export const correlatesBySignal = Object.fromEntries(
-  focusOptions.map(({ id }) => [id, registerCompanions]),
-);
-
 const SIGNAL_PRIORITY = ["pain", "digestion", "bloated", "anxious", "sensitive", "lowEnergy", "focus", "other"];
 
 export function symptomFocus(symptomId) {
   return symptomCatalog.find((item) => item.id === symptomId)?.focus || symptomId;
-}
-
-export function pickPrimarySignal(signals = []) {
-  const selected = signals.map(String).filter(Boolean);
-  if (!selected.length) return "pain";
-  return SIGNAL_PRIORITY.find((id) => selected.includes(id)) || selected[0];
 }
 
 /** Elige la señal de acción según gravedad y prioridad clínica. */
@@ -111,10 +94,6 @@ export function pickPrimarySymptom(symptoms = []) {
 
 function clampIntensity(value) {
   return Math.min(10, Math.max(1, value));
-}
-
-export function getCorrelatesForSignal() {
-  return registerCompanions;
 }
 
 const plans = {
@@ -427,34 +406,4 @@ function buildFirstMomentBody(checkIn) {
     return `Queda anclado al día ${checkIn.cycleDay}. Con más momentos parecidos se podrá afirmar un patrón.`;
   }
   return `Todavía hay pocos momentos parecidos para afirmar un patrón. Lo útil ahora es registrar qué haces y si realmente ayuda.`;
-}
-
-export function getActionLearning(checkIns = []) {
-  const grouped = new Map();
-
-  checkIns.forEach((checkIn) => {
-    if (!checkIn?.action?.id) return;
-    const current = grouped.get(checkIn.action.id) || {
-      id: checkIn.action.id,
-      title: checkIn.action.title,
-      tried: 0,
-      much: 0,
-      some: 0,
-      no: 0,
-      pending: 0,
-    };
-    current.tried += checkIn.feedback ? 1 : 0;
-    if (checkIn.feedback === "much") current.much += 1;
-    else if (checkIn.feedback === "some") current.some += 1;
-    else if (checkIn.feedback === "no") current.no += 1;
-    else current.pending += 1;
-    grouped.set(checkIn.action.id, current);
-  });
-
-  const items = [...grouped.values()];
-  return {
-    helpful: items.filter((item) => item.tried > 0 && item.much + item.some > item.no).sort((a, b) => b.much + b.some - (a.much + a.some)),
-    notHelpful: items.filter((item) => item.tried > 0 && item.no >= item.much + item.some),
-    uncertain: items.filter((item) => item.pending > 0 || item.tried === 0),
-  };
 }

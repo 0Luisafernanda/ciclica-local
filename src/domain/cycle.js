@@ -1,4 +1,4 @@
-import { addDays, clamp, daysBetween, parseISODate, startOfDay, toISODate } from "./date.js?v=feer-1";
+import { clamp, daysBetween, parseISODate, toISODate } from "./date.js?v=feer-1";
 import { moodLabels, bleedingLabels, skinLabels } from "../data/labels.js?v=feer-1";
 import { symptomFocus } from "../domain/actions.js?v=feer-1";
 
@@ -630,21 +630,6 @@ export function getFindings(state) {
   }
 
   return findings;
-}
-
-export function getIntensity(entry) {
-  const bleedingScore = { none: 0, light: 1, medium: 2, heavy: 3 }[entry.bleeding] || 0;
-  const symptomScore = Math.max(entry.pain, 10 - entry.energy, 10 - entry.sleep);
-  return clamp(bleedingScore + Math.ceil(symptomScore / 4), 1, 4);
-}
-
-export function getCalendarDays(state, days = 28) {
-  const today = startOfDay(new Date());
-  return Array.from({ length: days }, (_, index) => {
-    const date = addDays(today, index - (days - 1));
-    const iso = toISODate(date);
-    return { date, iso, entry: state.entries[iso] };
-  });
 }
 
 function getPhaseActions(phase, entry, contexts) {
