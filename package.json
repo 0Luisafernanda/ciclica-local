@@ -1,10 +1,19 @@
 {
-  "name": "feer",
+  "name": "feer-local",
+  "productName": "Feer",
   "version": "0.1.0",
   "private": false,
   "description": "App desktop local-first para el ciclo: momento → acción → aprendizaje, privada por defecto.",
   "license": "MIT",
   "author": "Feer",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luisaafernanda/feer-local.git"
+  },
+  "bugs": {
+    "url": "https://github.com/luisaafernanda/feer-local/issues"
+  },
+  "homepage": "https://github.com/luisaafernanda/feer-local#readme",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {

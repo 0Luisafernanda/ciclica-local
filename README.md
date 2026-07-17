@@ -1,8 +1,10 @@
-# Feer
+# feer-local
 
-App desktop **local-first** y privada por defecto: entiende cómo estás ahora, prueba una acción y aprende qué te ayuda.
+**Feer** — app desktop **local-first** y privada por defecto: entiende cómo estás ahora, prueba una acción y aprende qué te ayuda.
 
 Open source. Se lanza hoy y se cambia mañana.
+
+Repo: [github.com/luisaafernanda/feer-local](https://github.com/luisaafernanda/feer-local)
 
 ## Arrancar (desktop)
 
