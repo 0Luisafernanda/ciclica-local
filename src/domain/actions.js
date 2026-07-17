@@ -418,7 +418,7 @@ export function getMomentInterpretation(checkIn = {}, previousCheckIns = []) {
 function buildRepeatedMomentBody(checkIn, focusLabel, countLabel) {
   const bits = [`El ${focusLabel} aparece en ${countLabel} momentos registrados.`];
   if (Number.isFinite(Number(checkIn.cycleDay)) && checkIn.cycleDay != null) bits.push(`Este cayó en el día ${checkIn.cycleDay}.`);
-  bits.push("Ciclica observa qué suele acompañarlo y qué acciones ayudan.");
+  bits.push("Feer observa qué suele acompañarlo y qué acciones ayudan.");
   return bits.join(" ");
 }
 

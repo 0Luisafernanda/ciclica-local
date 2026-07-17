@@ -23,7 +23,7 @@ export function ProfileModal(state) {
           <legend>Cómo suelen ser tus ciclos</legend>
           ${radio("regularity", "regular", "Bastante regulares", "Llegan con una cadencia parecida.", profile.regularity || "unknown")}
           ${radio("regularity", "irregular", "Irregulares", "Cambian bastante de un ciclo a otro.", profile.regularity)}
-          ${radio("regularity", "unknown", "No estoy segura", "Prefiero que Ciclica observe primero.", profile.regularity || "unknown")}
+          ${radio("regularity", "unknown", "No estoy segura", "Prefiero que Feer observe primero.", profile.regularity || "unknown")}
           ${radio("regularity", "skip", "Prefiero no responder", "No usar esto para estimar por ahora.", profile.regularity)}
         </fieldset>
 

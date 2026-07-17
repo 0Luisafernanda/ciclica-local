@@ -1,6 +1,6 @@
-import { addDays, clamp, daysBetween, parseISODate, startOfDay, toISODate } from "./date.js?v=ciclica-value-1";
-import { moodLabels, bleedingLabels, skinLabels } from "../data/labels.js?v=ciclica-value-1";
-import { symptomFocus } from "../domain/actions.js?v=ciclica-moment-31";
+import { addDays, clamp, daysBetween, parseISODate, startOfDay, toISODate } from "./date.js?v=feer-1";
+import { moodLabels, bleedingLabels, skinLabels } from "../data/labels.js?v=feer-1";
+import { symptomFocus } from "../domain/actions.js?v=feer-1";
 
 export function getEntries(state) {
   return Object.values(state.entries).sort((a, b) => a.date.localeCompare(b.date));
@@ -13,7 +13,7 @@ export function getCycleEstimate(state, date = new Date()) {
       day: null,
       nextPeriodInDays: null,
       headline: "Configura tu primer ciclo",
-      summary: "Registra lo minimo y Ciclica empezara a detectar patrones sin sacar datos de tu computadora.",
+      summary: "Registra lo minimo y Feer empezara a detectar patrones sin sacar datos de tu computadora.",
       confidence: "Sin datos",
     };
   }
@@ -65,7 +65,7 @@ export function getCycleEstimate(state, date = new Date()) {
     day: cycleDay,
     nextPeriodInDays,
     headline: `Dia ${cycleDay}: fase lutea`,
-    summary: "Algunas personas notan mas sensibilidad, hambre, sueno ligero o menor paciencia. Ciclica observa si esto tambien es cierto para ti.",
+    summary: "Algunas personas notan mas sensibilidad, hambre, sueno ligero o menor paciencia. Feer observa si esto tambien es cierto para ti.",
     confidence,
   };
 }
@@ -79,7 +79,7 @@ export function getInsight(state, dateISO = toISODate(new Date())) {
   if (!state.profile) {
     const actions = getPhaseActions("unknown", entry, []);
     if (entry) {
-      const lines = [cluster, describeEntry(entry), "Configura tu ultimo periodo cuando quieras para que Ciclica empiece a estimar fases."].filter(Boolean);
+      const lines = [cluster, describeEntry(entry), "Configura tu ultimo periodo cuando quieras para que Feer empiece a estimar fases."].filter(Boolean);
       return {
         title: cluster ? "Un patron que vale la pena notar" : "Registro de hoy guardado",
         lines,
@@ -88,7 +88,7 @@ export function getInsight(state, dateISO = toISODate(new Date())) {
     }
     return {
       title: "Empieza con tu ultimo periodo",
-      lines: ["Con dos datos basicos, Ciclica puede estimar una fase probable sin asumir que tu cuerpo es un calendario perfecto."],
+      lines: ["Con dos datos basicos, Feer puede estimar una fase probable sin asumir que tu cuerpo es un calendario perfecto."],
       actions,
     };
   }
@@ -613,7 +613,7 @@ export function getFindings(state) {
   const findings = [];
 
   if (!state.profile) {
-    findings.push(["Falta perfil inicial", "Ciclica necesita fecha de ultima menstruacion y longitud aproximada para estimar fases con transparencia."]);
+    findings.push(["Falta perfil inicial", "Feer necesita fecha de ultima menstruacion y longitud aproximada para estimar fases con transparencia."]);
   }
 
   const heavyPain = entries.filter((entry) => entry.pain >= 7);

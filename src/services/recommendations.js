@@ -1,5 +1,5 @@
-import { getCycleEstimate } from "../domain/cycle.js?v=ciclica-value-1";
-import { moodLabels, bleedingLabels, skinLabels, contextLabels } from "../data/labels.js?v=ciclica-value-1";
+import { getCycleEstimate } from "../domain/cycle.js?v=feer-1";
+import { moodLabels, bleedingLabels, skinLabels, contextLabels } from "../data/labels.js?v=feer-1";
 
 const phaseNames = {
   menstrual: "menstrual",
@@ -30,7 +30,7 @@ export function buildRecommendationMessages(state, dateISO) {
     {
       role: "system",
       content:
-        "Eres el motor de recomendaciones de Ciclica, una app privada de seguimiento del ciclo menstrual. Con el contexto del ciclo y el registro del dia devuelves entre 3 y 4 recomendaciones practicas para hoy: movimiento o deporte, comida, hidratacion, descanso o cuidado del cuerpo, segun lo que ayude con lo registrado. Una recomendacion por linea, sin numerar y sin viñetas, maximo 18 palabras por linea, en espanol, tono calido y directo. No diagnostiques, no recomiendes medicamentos y no prometas certezas. Si el ciclo es irregular o la confianza es baja, trata la fase como estimacion y dilo con naturalidad.",
+        "Eres el motor de recomendaciones de Feer, una app privada de seguimiento del ciclo menstrual. Con el contexto del ciclo y el registro del dia devuelves entre 3 y 4 recomendaciones practicas para hoy: movimiento o deporte, comida, hidratacion, descanso o cuidado del cuerpo, segun lo que ayude con lo registrado. Una recomendacion por linea, sin numerar y sin viñetas, maximo 18 palabras por linea, en espanol, tono calido y directo. No diagnostiques, no recomiendes medicamentos y no prometas certezas. Si el ciclo es irregular o la confianza es baja, trata la fase como estimacion y dilo con naturalidad.",
     },
     {
       role: "user",

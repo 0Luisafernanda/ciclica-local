@@ -88,36 +88,12 @@ h1, h2, h3, h4 { color: var(--ink); letter-spacing: -0.04em; }
   color: var(--ink);
   text-align: left;
 }
-.desktop-brand > span:last-child { display: grid; gap: 1px; }
-.desktop-brand strong { font-size: 17px; letter-spacing: -0.03em; }
+.desktop-brand > span:last-child { display: grid; gap: 1px; align-content: center; }
 .desktop-brand small { color: var(--muted); font-size: 11px; }
-.ciclica-mark {
-  width: 31px;
-  height: 31px;
-  position: relative;
-  display: inline-block;
-  border: 2px solid var(--accent);
-  border-radius: 50%;
-}
-.ciclica-mark::after {
-  content: "";
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  right: -3px;
-  bottom: 0;
-  border-radius: 50%;
-  background: var(--app);
-  border: 2px solid var(--accent);
-}
-.ciclica-mark i {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  left: 6px;
-  top: 6px;
-  border-radius: 50%;
-  background: var(--accent);
+.feer-logo {
+  height: 28px;
+  width: auto;
+  display: block;
 }
 
 .primary-nav {

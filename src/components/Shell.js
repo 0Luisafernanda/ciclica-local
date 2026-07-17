@@ -1,11 +1,11 @@
 export function Shell({ content, modal, aiModal, checkInPanel }) {
   return `
-    <div class="desktop-shell" aria-label="Ciclica local">
-      <main class="desktop-app single-surface" aria-label="Ciclica">
+    <div class="desktop-shell" aria-label="Feer local">
+      <main class="desktop-app single-surface" aria-label="Feer">
         <header class="desktop-titlebar single-titlebar">
-          <div class="desktop-brand" aria-label="Ciclica">
-            <span class="ciclica-mark" aria-hidden="true"><i></i></span>
-            <span><strong>Ciclica</strong><small>privada y local</small></span>
+          <div class="desktop-brand" aria-label="Feer">
+            <img class="feer-logo" src="./assets/logo-feer.png?v=2" alt="Feer" width="96" height="31" />
+            <span><small>privada y local</small></span>
           </div>
 
           <div class="desktop-tools">

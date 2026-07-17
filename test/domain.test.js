@@ -118,7 +118,7 @@ test("personal insight connects low energy with short sleep using observed evide
   assert.match(insight.body, /otro ciclo|se vuelve patrón/i);
 });
 
-test("personal insight admits cold start and says what Ciclica is observing", () => {
+test("personal insight admits cold start and says what Feer is observing", () => {
   const insight = getPersonalInsight(
     {
       ...baseState,

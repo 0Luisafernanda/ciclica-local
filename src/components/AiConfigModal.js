@@ -1,4 +1,4 @@
-import { escapeHTML } from "../utils/html.js?v=ciclica-value-1";
+import { escapeHTML } from "../utils/html.js?v=feer-1";
 
 const OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"];
 

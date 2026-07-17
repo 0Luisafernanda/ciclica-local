@@ -1,8 +1,8 @@
-import { Shell } from "./Shell.js?v=ciclica-moment-1";
-import { NowView } from "./NowView.js?v=ciclica-moment-31";
-import { ProfileModal } from "./ProfileModal.js?v=ciclica-value-1";
-import { AiConfigModal } from "./AiConfigModal.js?v=ciclica-value-1";
-import { CheckInPanel } from "./CheckInPanel.js?v=ciclica-moment-31";
+import { Shell } from "./Shell.js?v=feer-1";
+import { NowView } from "./NowView.js?v=feer-1";
+import { ProfileModal } from "./ProfileModal.js?v=feer-1";
+import { AiConfigModal } from "./AiConfigModal.js?v=feer-1";
+import { CheckInPanel } from "./CheckInPanel.js?v=feer-1";
 
 export function App(state) {
   return Shell({

@@ -1,4 +1,5 @@
-const STORAGE_KEY = "ciclica-local:v1";
+const STORAGE_KEY = "feer:v1";
+const LEGACY_KEYS = ["ciclica-local:v1", "ciclica-local:v0"];
 
 const defaultState = {
   activeView: "now",
@@ -68,8 +69,14 @@ export function createStore() {
 function loadState() {
   try {
     const modern = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    const legacy = JSON.parse(localStorage.getItem("ciclica-local:v0"));
-    return normalizeState(modern || legacy || {});
+    if (modern) return normalizeState(modern);
+
+    for (const key of LEGACY_KEYS) {
+      const legacy = JSON.parse(localStorage.getItem(key));
+      if (legacy) return normalizeState(legacy);
+    }
+
+    return structuredClone(defaultState);
   } catch {
     return structuredClone(defaultState);
   }
@@ -79,6 +86,6 @@ function saveState(state) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (error) {
-    console.warn("No se pudo guardar el estado local de Ciclica.", error);
+    console.warn("No se pudo guardar el estado local de Feer.", error);
   }
 }

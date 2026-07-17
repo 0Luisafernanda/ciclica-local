@@ -1,4 +1,4 @@
-import { buildReportHTML } from "../domain/report.js?v=ciclica-now-1";
+import { buildReportHTML } from "../domain/report.js?v=feer-1";
 
 export function ConsultView(state) {
   return `

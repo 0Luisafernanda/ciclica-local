@@ -1,10 +1,10 @@
-import { App } from "../components/App.js?v=ciclica-moment-31";
-import { buildPlainReport } from "../domain/report.js?v=ciclica-value-1";
-import { clamp, toISODate } from "../domain/date.js?v=ciclica-value-1";
-import { getActionPlan, pickPrimarySymptom, symptomCatalog } from "../domain/actions.js?v=ciclica-moment-31";
-import { getCycleEstimate, getCycleNumber } from "../domain/cycle.js?v=ciclica-moment-31";
-import { listOllamaModels, generateWithOllama, generateWithOpenAI, generateWithAI, resolveAIProvider } from "../services/aiProvider.js?v=ciclica-value-1";
-import { buildRecommendationMessages, parseRecommendations } from "../services/recommendations.js?v=ciclica-value-1";
+import { App } from "../components/App.js?v=feer-1";
+import { buildPlainReport } from "../domain/report.js?v=feer-1";
+import { clamp, toISODate } from "../domain/date.js?v=feer-1";
+import { getActionPlan, pickPrimarySymptom, symptomCatalog } from "../domain/actions.js?v=feer-1";
+import { getCycleEstimate, getCycleNumber } from "../domain/cycle.js?v=feer-1";
+import { listOllamaModels, generateWithOllama, generateWithOpenAI, generateWithAI, resolveAIProvider } from "../services/aiProvider.js?v=feer-1";
+import { buildRecommendationMessages, parseRecommendations } from "../services/recommendations.js?v=feer-1";
 
 export function bindApp(root, store) {
   let state = store.getState();
@@ -342,7 +342,7 @@ export function bindApp(root, store) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `ciclica-local-${new Date().toISOString().slice(0, 10)}.json`;
+      link.download = `feer-${new Date().toISOString().slice(0, 10)}.json`;
       link.click();
       URL.revokeObjectURL(url);
       toast(root, "Exportacion local creada.");

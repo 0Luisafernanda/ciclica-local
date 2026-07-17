@@ -1,6 +1,6 @@
-import { App } from "./components/App.js?v=ciclica-moment-31";
-import { createStore } from "./state/store.js?v=ciclica-value-1";
-import { bindApp } from "./ui/handlers.js?v=ciclica-moment-31";
+import { App } from "./components/App.js?v=feer-1";
+import { createStore } from "./state/store.js?v=feer-1";
+import { bindApp } from "./ui/handlers.js?v=feer-1";
 
 const store = createStore();
 const root = document.querySelector("#app");

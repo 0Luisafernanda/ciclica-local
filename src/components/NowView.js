@@ -1,7 +1,7 @@
-import { getCycleEstimate, getPersonalInsight } from "../domain/cycle.js?v=ciclica-moment-31";
-import { getMomentInterpretation } from "../domain/actions.js?v=ciclica-value-1";
-import { toISODate } from "../domain/date.js?v=ciclica-value-1";
-import { escapeHTML } from "../utils/html.js?v=ciclica-value-1";
+import { getCycleEstimate, getPersonalInsight } from "../domain/cycle.js?v=feer-1";
+import { getMomentInterpretation } from "../domain/actions.js?v=feer-1";
+import { toISODate } from "../domain/date.js?v=feer-1";
+import { escapeHTML } from "../utils/html.js?v=feer-1";
 
 export function NowView(state, currentDate = new Date()) {
   const dateISO = toISODate(currentDate);

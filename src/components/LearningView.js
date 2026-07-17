@@ -1,5 +1,5 @@
-import { focusOptions, getActionLearning } from "../domain/actions.js?v=ciclica-now-1";
-import { escapeHTML } from "../utils/html.js?v=ciclica-now-1";
+import { focusOptions, getActionLearning } from "../domain/actions.js?v=feer-1";
+import { escapeHTML } from "../utils/html.js?v=feer-1";
 
 const focusLabels = Object.fromEntries(focusOptions.map((item) => [item.id, item.label]));
 
@@ -12,7 +12,7 @@ export function LearningView(state) {
     <section class="learning-view" data-view-panel="learning">
       <header class="editorial-header">
         <p class="eyebrow">Aprendizajes</p>
-        <h2>Lo que Ciclica está aprendiendo sobre ti</h2>
+        <h2>Lo que Feer está aprendiendo sobre ti</h2>
         <p>No son verdades cerradas. Cada lectura muestra qué se repite, qué parece ayudarte y qué todavía no sabemos.</p>
       </header>
 
@@ -26,7 +26,7 @@ function renderLearningEmpty() {
     <section class="learning-empty">
       <p class="section-label">Todavía no hay evidencia personal</p>
       <h3>Los aprendizajes nacen de momentos reales</h3>
-      <p>Cuando registres cómo estás, qué probaste y si ayudó, Ciclica empezará a separar coincidencias de patrones útiles.</p>
+      <p>Cuando registres cómo estás, qué probaste y si ayudó, Feer empezará a separar coincidencias de patrones útiles.</p>
       <button class="primary-cta compact" data-action="open-checkin" type="button">Registrar un momento</button>
     </section>
   `;
@@ -80,7 +80,7 @@ function renderLearningSections(repeated, learning, total) {
                 (item) => `
             <article class="learning-line quiet">
               <h3>${escapeHTML(item.title)}</h3>
-              <p>Hay ${item.pending} comprobación${item.pending === 1 ? "" : "es"} pendiente${item.pending === 1 ? "" : "s"}. Sin respuesta, Ciclica no asume que funcionó.</p>
+              <p>Hay ${item.pending} comprobación${item.pending === 1 ? "" : "es"} pendiente${item.pending === 1 ? "" : "s"}. Sin respuesta, Feer no asume que funcionó.</p>
             </article>
           `,
               )

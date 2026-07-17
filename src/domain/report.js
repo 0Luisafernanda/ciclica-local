@@ -1,6 +1,6 @@
-import { contextLabels } from "../data/labels.js?v=ciclica-value-1";
-import { getEntries } from "./cycle.js?v=ciclica-value-1";
-import { escapeHTML } from "../utils/html.js?v=ciclica-value-1";
+import { contextLabels } from "../data/labels.js?v=feer-1";
+import { getEntries } from "./cycle.js?v=feer-1";
+import { escapeHTML } from "../utils/html.js?v=feer-1";
 
 const focusLabels = {
   pain: "dolor",
@@ -95,7 +95,7 @@ export function buildPlainReport(state) {
     .map((item) => `- ${item.action.title}: ${feedbackLabels[item.feedback] || "resultado pendiente"}`);
 
   return [
-    "Ciclica Local - Resumen para consulta",
+    "Feer - Resumen para consulta",
     "Generado localmente. Organiza observaciones y no es diagnóstico.",
     "",
     "CAMBIOS Y SEÑALES",

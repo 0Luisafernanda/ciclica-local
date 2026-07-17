@@ -32,7 +32,7 @@ test("NowView keeps cycle context insight moment CTA and daily registration visi
   assert.match(html, /daily-title-button[^>]*>\s*Cómo me siento\s*</);
   assert.match(html, /quiet-plus/);
   assert.match(html, /open-checkin/);
-  assert.doesNotMatch(html, /Lo que Ciclica está viendo|Un momento, no un formulario|Sin evidencia|Necesito algo|¿Cómo te sientes\?|quiet-log/);
+  assert.doesNotMatch(html, /Lo que Feer está viendo|Un momento, no un formulario|Sin evidencia|Necesito algo|¿Cómo te sientes\?|quiet-log/);
   assert.doesNotMatch(html, />(Momento|Anotar)</);
   assert.doesNotMatch(html, /\b(Bien|Normal|Difícil)\b/);
   assert.match(html, /Empezó mi periodo/);
@@ -130,7 +130,7 @@ test("Shell exposes one product surface without primary navigation", () => {
     checkInPanel: "",
   });
 
-  assert.match(html, /Ciclica/);
+  assert.match(html, /Feer/);
   assert.doesNotMatch(html, /Navegación principal|>Aprendizajes<|>Consulta</);
 });
 

@@ -1,8 +1,8 @@
-import { getInsight, getCycleEstimate, getCalendarDays } from "../domain/cycle.js?v=ciclica-now-1";
-import { toISODate } from "../domain/date.js?v=ciclica-now-1";
-import { escapeHTML } from "../utils/html.js?v=ciclica-now-1";
-import { bleedingLabels, moodLabels, skinLabels } from "../data/labels.js?v=ciclica-now-1";
-import { resolveAIProvider } from "../services/aiProvider.js?v=ciclica-now-1";
+import { getInsight, getCycleEstimate, getCalendarDays } from "../domain/cycle.js?v=feer-1";
+import { toISODate } from "../domain/date.js?v=feer-1";
+import { escapeHTML } from "../utils/html.js?v=feer-1";
+import { bleedingLabels, moodLabels, skinLabels } from "../data/labels.js?v=feer-1";
+import { resolveAIProvider } from "../services/aiProvider.js?v=feer-1";
 
 export function TodayView(state) {
   const date = toISODate(new Date());
@@ -48,7 +48,7 @@ export function TodayView(state) {
   const logSummary = hasEntry ? getLogSummary(entry, moodValue, bleedingValue, skinValue) : "Toca para registrar";
   const nextPeriodLine = estimate.nextPeriodInDays
     ? `Próximo periodo · ~${estimate.nextPeriodInDays} día${estimate.nextPeriodInDays === 1 ? "" : "s"}`
-    : "Empieza con lo mínimo y Ciclica aprenderá contigo";
+    : "Empieza con lo mínimo y Feer aprenderá contigo";
   const weekDays = getCalendarDays(state, 14);
   const weekdayLetters = ["D", "L", "M", "M", "J", "V", "S"];
 

@@ -5,8 +5,8 @@ import {
   focusOptions,
   intensityLevels,
   symptomCatalog,
-} from "../domain/actions.js?v=ciclica-moment-31";
-import { getCycleEstimate } from "../domain/cycle.js?v=ciclica-moment-31";
+} from "../domain/actions.js?v=feer-1";
+import { getCycleEstimate } from "../domain/cycle.js?v=feer-1";
 
 const phaseShort = {
   menstrual: "menstrual",
