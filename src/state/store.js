@@ -2,7 +2,6 @@ const STORAGE_KEY = "feer:v1";
 const LEGACY_KEYS = ["ciclica-local:v1", "ciclica-local:v0"];
 
 const defaultState = {
-  activeView: "now",
   profile: null,
   entries: {},
   checkIns: [],
@@ -12,21 +11,17 @@ const defaultState = {
     ollama: { url: "http://localhost:11434", model: "" },
     openai: { apiKey: "", model: "gpt-4o-mini" },
   },
-  aiRecs: null,
 };
 
 export function normalizeState(stored = {}) {
-  const viewAliases = { today: "now", patterns: "learning" };
-  const requestedView = viewAliases[stored.activeView] || stored.activeView || defaultState.activeView;
-  const activeView = ["now", "learning", "consult", "library"].includes(requestedView) ? requestedView : "now";
   const storedAi = stored.aiConfig || {};
 
   return {
     ...defaultState,
-    ...stored,
-    activeView,
+    profile: stored.profile ?? defaultState.profile,
     entries: stored.entries && typeof stored.entries === "object" ? stored.entries : {},
     checkIns: Array.isArray(stored.checkIns) ? stored.checkIns : [],
+    onboardingDismissed: stored.onboardingDismissed ?? defaultState.onboardingDismissed,
     aiConfig: {
       ...defaultState.aiConfig,
       ...storedAi,

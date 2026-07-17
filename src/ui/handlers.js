@@ -3,8 +3,7 @@ import { buildPlainReport } from "../domain/report.js?v=feer-1";
 import { clamp, toISODate } from "../domain/date.js?v=feer-1";
 import { getActionPlan, pickPrimarySymptom, symptomCatalog } from "../domain/actions.js?v=feer-1";
 import { getCycleEstimate, getCycleNumber } from "../domain/cycle.js?v=feer-1";
-import { listOllamaModels, generateWithOllama, generateWithOpenAI, generateWithAI, resolveAIProvider } from "../services/aiProvider.js?v=feer-1";
-import { buildRecommendationMessages, parseRecommendations } from "../services/recommendations.js?v=feer-1";
+import { listOllamaModels, generateWithOllama, generateWithOpenAI } from "../services/aiProvider.js?v=feer-1";
 
 export function bindApp(root, store) {
   let state = store.getState();
@@ -17,59 +16,14 @@ export function bindApp(root, store) {
 
   attach();
 
-  async function generateRecs() {
-    const current = store.getState();
-    const provider = resolveAIProvider(current.aiConfig);
-    if (!provider) return;
-    const dateISO = toISODate(new Date());
-    store.setState((s) => ({ ...s, aiRecs: { date: dateISO, status: "loading", lines: [] } }));
-    try {
-      const messages = buildRecommendationMessages(current, dateISO);
-      const text = await generateWithAI(current.aiConfig, messages);
-      const lines = parseRecommendations(text);
-      if (!lines.length) throw new Error("La respuesta llego vacia.");
-      store.setState((s) => ({ ...s, aiRecs: { date: dateISO, status: "done", lines, provider } }));
-    } catch (error) {
-      const friendly = /failed to fetch|networkerror/i.test(error.message)
-        ? provider === "ollama"
-          ? "No encontre Ollama corriendo en esa direccion. Si prefieres nube, cambia a OpenAI en Configuración."
-          : "No pude conectar con el proveedor de IA"
-        : error.message;
-      store.setState((s) => ({ ...s, aiRecs: { date: dateISO, status: "error", error: friendly, lines: [] } }));
-    }
-  }
-
   function attach() {
-    root.querySelectorAll("[data-action='view']").forEach((button) => {
-      button.addEventListener("click", () => store.setState((current) => ({ ...current, activeView: button.dataset.view })));
-    });
-
     const profileModal = root.querySelector("#profileModal");
-    const profileForm = root.querySelector("#profileForm");
     const menuModal = root.querySelector("#menuModal");
     const checkInLayer = root.querySelector("#checkInLayer");
     const checkInForm = root.querySelector("#checkInForm");
+    const aiModal = root.querySelector("#aiModal");
+    const aiForm = root.querySelector("#aiForm");
     const today = toISODate(new Date());
-
-    root.querySelectorAll("[data-action='daily-state']").forEach((button) => {
-      button.addEventListener("click", () => {
-        const dailyState = button.dataset.value;
-        store.setState((current) => {
-          const existing = current.entries?.[today];
-          return {
-            ...current,
-            entries: {
-              ...current.entries,
-              [today]: mergeDailyLogIntoEntry(existing, today, {
-                dailyState,
-                dailySignals: [],
-                dailyIntensity: null,
-              }),
-            },
-          };
-        });
-      });
-    });
 
     root.querySelector("[data-action='period-start']")?.addEventListener("click", () => {
       store.setState((current) => {
@@ -122,8 +76,9 @@ export function bindApp(root, store) {
         input.checked = false;
       });
       const preferred = focus === "pain" || !focus ? "cramps" : focus;
-      const match = checkInForm.querySelector(`input[name='symptom:${preferred}'][value='5']`)
-        || checkInForm.querySelector(`input[name='symptom:cramps'][value='5']`);
+      const match =
+        checkInForm.querySelector(`input[name='symptom:${preferred}'][value='5']`) ||
+        checkInForm.querySelector(`input[name='symptom:cramps'][value='5']`);
       if (match) match.checked = true;
       const preferredFocus = symptomCatalog.find((item) => item.id === preferred)?.focus || "pain";
       const category = checkInForm.querySelector(`input[name='categories'][value='${preferredFocus}']`);
@@ -178,8 +133,8 @@ export function bindApp(root, store) {
         symptoms,
         signals: primary.signals.length ? primary.signals : bleeding !== "none" ? ["pain"] : ["other"],
         focus: primary.symptomId ? primary.focus : bleeding !== "none" ? "pain" : "other",
-        intensity: primary.symptomId ? primary.intensity : bleeding !== "none" ? 5 : 5,
-        availableTime: String(form.get("availableTime") || "2"),
+        intensity: primary.symptomId ? primary.intensity : 5,
+        availableTime: "2",
         companions,
         note: otherNote,
         cycleDay: estimate.day != null && Number.isFinite(Number(estimate.day)) ? Number(estimate.day) : null,
@@ -191,7 +146,6 @@ export function bindApp(root, store) {
       const date = toISODate(now);
       store.setState((current) => ({
         ...current,
-        activeView: "now",
         checkIns: [...(current.checkIns || []), checkIn],
         entries: {
           ...current.entries,
@@ -207,7 +161,9 @@ export function bindApp(root, store) {
         const id = button.dataset.checkinId;
         store.setState((current) => ({
           ...current,
-          checkIns: (current.checkIns || []).map((item) => (item.id === id ? { ...item, actionStartedAt: new Date().toISOString() } : item)),
+          checkIns: (current.checkIns || []).map((item) =>
+            item.id === id ? { ...item, actionStartedAt: new Date().toISOString() } : item,
+          ),
         }));
         toast(root, "Acción iniciada. Vuelve después para registrar si ayudó.");
       });
@@ -219,7 +175,9 @@ export function bindApp(root, store) {
         const feedback = button.dataset.feedback;
         store.setState((current) => ({
           ...current,
-          checkIns: (current.checkIns || []).map((item) => (item.id === id ? { ...item, feedback, feedbackAt: new Date().toISOString() } : item)),
+          checkIns: (current.checkIns || []).map((item) =>
+            item.id === id ? { ...item, feedback, feedbackAt: new Date().toISOString() } : item,
+          ),
         }));
         toast(root, "Respuesta guardada. Esto mejora tus próximos aprendizajes.");
       });
@@ -236,10 +194,9 @@ export function bindApp(root, store) {
       });
     });
 
-    root.querySelector("[data-action='close-modal']")?.addEventListener("click", () => {
-      profileModal?.close();
+    root.querySelectorAll("[data-action='close-modal']").forEach((button) => {
+      button.addEventListener("click", () => profileModal?.close());
     });
-
 
     root.querySelectorAll("input[name='contexts']").forEach((input) => {
       input.addEventListener("change", () => {
@@ -249,34 +206,22 @@ export function bindApp(root, store) {
             if (other !== input) other.checked = false;
           });
         } else if (input.checked) {
-          root.querySelectorAll("input[name='contexts'][value='none'], input[name='contexts'][value='preferNoContext']").forEach((other) => {
-            other.checked = false;
-          });
+          root
+            .querySelectorAll("input[name='contexts'][value='none'], input[name='contexts'][value='preferNoContext']")
+            .forEach((other) => {
+              other.checked = false;
+            });
         }
       });
-    });
-
-    root.querySelectorAll("[data-action='onboarding-next']").forEach((button) => {
-      button.addEventListener("click", () => {
-        const current = Number(profileForm?.dataset.step || 0);
-        if (!canAdvance(profileForm, current)) return;
-        profileForm.dataset.step = String(Math.min(3, current + 1));
-        updateOnboardingStep(profileForm);
-      });
-    });
-
-    root.querySelector("[data-action='onboarding-back']")?.addEventListener("click", () => {
-      const current = Number(profileForm?.dataset.step || 0);
-      profileForm.dataset.step = String(Math.max(1, current - 1));
-      updateOnboardingStep(profileForm);
     });
 
     root.querySelector("#profileForm")?.addEventListener("submit", (event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
-      const modal = root.querySelector("#profileModal");
-      const contexts = form.getAll("contexts").filter((context) => !["none", "preferNoContext"].includes(context));
-      if (modal?.open) modal.close();
+      const contexts = form
+        .getAll("contexts")
+        .filter((context) => !["none", "preferNoContext"].includes(context));
+      if (profileModal?.open) profileModal.close();
       store.setState((current) => ({
         ...current,
         onboardingDismissed: true,
@@ -291,48 +236,13 @@ export function bindApp(root, store) {
       toast(root, "Perfil local actualizado.");
     });
 
-    root.querySelector("#dailyForm")?.addEventListener("input", (event) => {
-      const output = root.querySelector(`[data-output='${event.target.name}']`);
-      if (output) output.textContent = event.target.value;
-      const dial = event.target.closest(".vital-dial, .vital-slider, .metric-row");
-      if (dial) dial.style.setProperty("--metric", `${Number(event.target.value) * 10}%`);
-    });
-
-    root.querySelector("#dailyForm")?.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const form = new FormData(event.currentTarget);
-      const date = form.get("entryDate");
-      store.setState((current) => ({
-        ...current,
-        entries: {
-          ...current.entries,
-          [date]: {
-            date,
-            bleeding: form.get("bleeding"),
-            pain: Number(form.get("pain")),
-            energy: Number(form.get("energy")),
-            sleep: Number(form.get("sleep")),
-            mood: form.get("mood"),
-            skin: form.get("skin"),
-            note: String(form.get("note") || "").trim(),
-            updatedAt: new Date().toISOString(),
-          },
-        },
-      }));
-      toast(root, "Entrada guardada en este dispositivo.");
-      if (store.getState().aiConfig?.provider) generateRecs();
-    });
-
-    root.querySelectorAll("[data-action='generate-recs']").forEach((button) => {
-      button.addEventListener("click", generateRecs);
-    });
-
     root.querySelector("[data-action='copy-report']")?.addEventListener("click", async () => {
+      menuModal?.close();
       try {
         await navigator.clipboard.writeText(buildPlainReport(state));
         toast(root, "Reporte copiado.");
       } catch {
-        toast(root, "No pude copiar automaticamente.");
+        toast(root, "No pude copiar automáticamente.");
       }
     });
 
@@ -345,19 +255,18 @@ export function bindApp(root, store) {
       link.download = `feer-${new Date().toISOString().slice(0, 10)}.json`;
       link.click();
       URL.revokeObjectURL(url);
-      toast(root, "Exportacion local creada.");
+      toast(root, "Exportación local creada.");
     });
 
     root.querySelector("[data-action='reset-data']")?.addEventListener("click", () => {
       menuModal?.close();
-      const confirmed = window.confirm("Esto borra tu perfil y registros de este dispositivo. Si quieres conservar una copia, exporta antes. ¿Borrar datos locales?");
+      const confirmed = window.confirm(
+        "Esto borra tu perfil y registros de este dispositivo. Si quieres conservar una copia, exporta antes. ¿Borrar datos locales?",
+      );
       if (!confirmed) return;
       store.reset();
       toast(root, "Datos locales borrados.");
     });
-
-    const aiModal = root.querySelector("#aiModal");
-    const aiForm = root.querySelector("#aiForm");
 
     root.querySelectorAll("[data-action='ai-config']").forEach((button) => {
       button.addEventListener("click", () => {
@@ -387,14 +296,14 @@ export function bindApp(root, store) {
       const modelInput = aiForm?.querySelector("input[name='ollamaModel']");
       const datalist = aiForm?.querySelector("#ollamaModelsList");
       button.disabled = true;
-      if (resultEl) resultEl.textContent = "Buscando modelos...";
+      if (resultEl) resultEl.textContent = "Buscando modelos…";
       try {
         const models = await listOllamaModels(urlInput?.value);
         if (datalist) datalist.innerHTML = models.map((name) => `<option value="${name}"></option>`).join("");
         if (resultEl) {
           resultEl.textContent = models.length
             ? `Encontrados: ${models.join(", ")}`
-            : "Ollama respondio pero no tiene modelos instalados (ollama pull <modelo>).";
+            : "Ollama respondió pero no tiene modelos instalados (ollama pull <modelo>).";
         }
         if (models.length && modelInput && !modelInput.value) modelInput.value = models[0];
       } catch (error) {
@@ -410,15 +319,15 @@ export function bindApp(root, store) {
       const urlInput = aiForm?.querySelector("input[name='ollamaUrl']");
       const modelInput = aiForm?.querySelector("input[name='ollamaModel']");
       button.disabled = true;
-      if (resultEl) resultEl.textContent = "Probando...";
+      if (resultEl) resultEl.textContent = "Probando…";
       try {
         const reply = await generateWithOllama(
           { url: urlInput?.value, model: modelInput?.value },
-          [{ role: "user", content: "Respondeme con la palabra: ok" }],
+          [{ role: "user", content: "Responde con la palabra: ok" }],
         );
-        if (resultEl) resultEl.textContent = `Conexion ok. Respuesta: "${reply.slice(0, 80)}"`;
+        if (resultEl) resultEl.textContent = `Conexión ok. Respuesta: "${reply.slice(0, 80)}"`;
       } catch (error) {
-        if (resultEl) resultEl.textContent = `Fallo la prueba: ${error.message}`;
+        if (resultEl) resultEl.textContent = `Falló la prueba: ${error.message}`;
       } finally {
         button.disabled = false;
       }
@@ -430,15 +339,15 @@ export function bindApp(root, store) {
       const keyInput = aiForm?.querySelector("input[name='openaiKey']");
       const modelSelect = aiForm?.querySelector("select[name='openaiModel']");
       button.disabled = true;
-      if (resultEl) resultEl.textContent = "Probando...";
+      if (resultEl) resultEl.textContent = "Probando…";
       try {
         const reply = await generateWithOpenAI(
           { apiKey: keyInput?.value, model: modelSelect?.value },
-          [{ role: "user", content: "Respondeme con la palabra: ok" }],
+          [{ role: "user", content: "Responde con la palabra: ok" }],
         );
-        if (resultEl) resultEl.textContent = `Conexion ok. Respuesta: "${reply.slice(0, 80)}"`;
+        if (resultEl) resultEl.textContent = `Conexión ok. Respuesta: "${reply.slice(0, 80)}"`;
       } catch (error) {
-        if (resultEl) resultEl.textContent = `Fallo la prueba: ${error.message}`;
+        if (resultEl) resultEl.textContent = `Falló la prueba: ${error.message}`;
       } finally {
         button.disabled = false;
       }
@@ -479,11 +388,6 @@ export function getExportState(state) {
       },
     },
   };
-}
-
-export function toggleDailySignal(signals, value) {
-  const current = Array.isArray(signals) ? signals : [];
-  return current.includes(value) ? current.filter((item) => item !== value) : [...current, value];
 }
 
 export function mergeDailyLogIntoEntry(existing, date, changes) {
@@ -549,11 +453,12 @@ export function mergeMomentIntoEntry(existing, checkIn, date) {
   const symptoms = Array.isArray(checkIn.symptoms) ? checkIn.symptoms : [];
   const byId = Object.fromEntries(symptoms.map((item) => [item.id, Number(item.intensity) || 0]));
   const companions = Array.isArray(checkIn.companions) ? checkIn.companions : [];
-  const signals = Array.isArray(checkIn.signals) && checkIn.signals.length
-    ? checkIn.signals
-    : checkIn.focus
-      ? [checkIn.focus]
-      : [];
+  const signals =
+    Array.isArray(checkIn.signals) && checkIn.signals.length
+      ? checkIn.signals
+      : checkIn.focus
+        ? [checkIn.focus]
+        : [];
 
   const crampIntensity = Math.max(byId.cramps || 0, byId.headache || 0, byId.backPain || 0, byId.legs || 0);
   if (crampIntensity > 0) entry.pain = clamp(crampIntensity, 0, 10);
@@ -585,29 +490,6 @@ function toast(root, message) {
   node.classList.add("is-visible");
   window.clearTimeout(toast.timeout);
   toast.timeout = window.setTimeout(() => node.classList.remove("is-visible"), 2400);
-}
-
-
-function updateOnboardingStep(form) {
-  if (!form) return;
-  const step = Number(form.dataset.step || 1);
-  form.querySelectorAll("[data-step-panel]").forEach((panel) => {
-    panel.classList.toggle("is-active", Number(panel.dataset.stepPanel) === step);
-  });
-  form.querySelectorAll("[data-step-dot]").forEach((dot) => {
-    const dotStep = Number(dot.dataset.stepDot);
-    dot.classList.toggle("is-active", dotStep === step);
-    dot.classList.toggle("is-complete", dotStep < step);
-  });
-  form.querySelector("[data-action='onboarding-back']")?.toggleAttribute("disabled", step <= 1);
-  form.querySelector(".onboarding-actions [data-action='onboarding-next']")?.toggleAttribute("hidden", step >= 3);
-  form.querySelector("[data-action='save-profile']")?.toggleAttribute("hidden", step < 3);
-}
-
-function canAdvance(form, step) {
-  if (!form) return false;
-  if (step === 2) return form.elements.cycleLength.reportValidity();
-  return true;
 }
 
 function updateAiProviderPanels(form) {

@@ -81,7 +81,7 @@ export function AiConfigModal(state) {
           <p class="ai-test-result" data-test-result="openai"></p>
         </div>
 
-        <div class="onboarding-actions">
+        <div class="modal-actions">
           <button class="button primary" data-action="save-ai-config" type="submit">Guardar</button>
         </div>
       </form>
