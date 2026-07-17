@@ -1,75 +1,51 @@
-# Ciclica Local
+# Feer
 
-Ciclica Local es una app desktop, local-first y privada por defecto para consultar el ciclo y descubrir cambios personales con el menor esfuerzo posible.
+App desktop **local-first** y privada por defecto: entiende cómo estás ahora, prueba una acción y aprende qué te ayuda.
 
-## Una sola vista
+Open source. Se lanza hoy y se cambia mañana.
 
-La aplicación no tiene navegación entre módulos ni un dashboard. La única superficie mantiene visible el contexto valioso y cambia según el momento:
-
-1. **Contexto del ciclo** — día estimado, fase y próxima menstruación.
-2. **Patrones** — insights personales en el centro, solo con evidencia observada.
-3. **Un momento** — cuando algo pesa ahora, un drawer pide foco, intensidad, contexto y tiempo; Ciclica responde con un plan concreto y pide feedback si ayudó.
-4. **Hoy** — “Cómo me siento” abre el registro con detalle; sin formularios visibles.
-
-Ciclica no presenta información general sobre fases como si fuera un insight. Si todavía no existe evidencia personal, lo dice claramente.
-
-Si falta la última fecha menstrual, la misma franja muestra claramente qué no puede estimarse y permite completarla sin ocultar el resto de la experiencia.
-
-Todo aparece en la misma pantalla y está diseñado para caber en la ventana desktop sin recorrer varias secciones.
-
-El check-in de demanda y el registro de un toque viven en la vista principal. También incluye un acceso directo para marcar el inicio del periodo.
-
-## Menú secundario
-
-El menú de tres puntos contiene únicamente tareas ocasionales:
-
-- perfil y ciclo;
-- Ollama/OpenAI;
-- copiar un resumen para consulta;
-- exportar datos;
-- borrar datos.
-
-No son vistas principales.
-
-## Privacidad e IA
-
-- Los registros se guardan en `localStorage` del dispositivo.
-- No hay cuenta, analítica ni sincronización automática.
-- Ollama permite inferencia local.
-- OpenAI es opcional y requiere una decisión explícita.
-- La app sigue funcionando mediante reglas locales sin IA.
-- La exportación excluye la API key de OpenAI.
-
-## Estructura técnica
-
-- `src/components/NowView.js`: la única superficie de producto
-- `src/components/CheckInPanel.js`: drawer de demanda (momento → acción → feedback)
-- `src/domain/actions.js`: acciones, interpretación y aprendizaje
-- `src/domain/cycle.js`: estimación cauta del ciclo
-- `src/domain/report.js`: resumen para consulta
-- `src/state/store.js`: persistencia y migración local
-- `src/ui/handlers.js`: check-in, registro diario, ajustes y exportación
-
-## Correr local
+## Arrancar (desktop)
 
 ```bash
-python3 -m http.server 4173
+npm install
+npm start
 ```
 
-Abrir `http://localhost:4173`.
+Abre una ventana Electron con la app.
 
-## Verificación
+## Arrancar (navegador)
+
+```bash
+npm run web
+```
+
+Abrir [http://localhost:4173](http://localhost:4173).
+
+## Qué es (v0.1)
+
+Una sola vista. Sin dashboard.
+
+1. **Ciclo** — día estimado y fase (si hay fecha de periodo).
+2. **Patrones** — solo con evidencia personal; si no hay, lo dice.
+3. **Registro** — sangrado + síntomas con intensidad propia → acción concreta → feedback.
+4. **Menú** — perfil, IA opcional (Ollama/OpenAI), exportar, borrar.
+
+Datos en `localStorage`. Sin cuenta. Sin analytics. Sin sync.
+
+## Tests
 
 ```bash
 npm test
 ```
 
-Comprobar manualmente:
+## Estructura
 
-1. abrir y cerrar el check-in;
-2. guardar un momento;
-3. ver lectura, acción y feedback en la misma pantalla;
-4. registrar si ayudó;
-5. abrir perfil e IA desde el menú;
-6. copiar/exportar sin exponer credenciales;
-7. revisar la consola del navegador.
+- `electron/main.cjs` — ventana desktop
+- `src/components/NowView.js` — superficie principal
+- `src/components/CheckInPanel.js` — registro del momento
+- `src/domain/` — ciclo, acciones, reporte
+- `src/state/store.js` — persistencia local
+
+## Licencia
+
+MIT — úsala, forkéala, cámbiala.
