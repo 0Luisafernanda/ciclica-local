@@ -4,4 +4,5 @@ dist/
 out/
 *.log
 .npm
+.hermes/
 package-lock.json.bak

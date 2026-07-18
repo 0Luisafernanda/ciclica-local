@@ -1,53 +1,43 @@
-# feer-local
+# Feer
 
-**Feer** — app desktop **local-first** y privada por defecto: entiende cómo estás ahora, prueba una acción y aprende qué te ayuda.
+App desktop **local-first** para el ciclo: entiende cómo estás ahora, prueba una acción concreta y aprende qué te ayuda.
 
-Open source. Se lanza hoy y se cambia mañana.
+Privada por defecto. Sin cuenta. Sin analytics. Sin sync. Open source (MIT).
 
-Repo: [github.com/luisaafernanda/feer-local](https://github.com/luisaafernanda/feer-local)
+[github.com/luisaafernanda/feer-local](https://github.com/luisaafernanda/feer-local)
 
-## Arrancar (desktop)
+## Quick start
 
 ```bash
 npm install
-npm start
-```
-
-Abre una ventana Electron con la app.
-
-## Arrancar (navegador)
-
-```bash
-npm run web
-```
-
-Abrir [http://localhost:4173](http://localhost:4173).
-
-## Qué es (v0.1)
-
-Una sola vista. Sin dashboard.
-
-1. **Ciclo** — día estimado y fase (si hay fecha de periodo).
-2. **Patrones** — solo con evidencia personal; si no hay, lo dice.
-3. **Registro** — sangrado + síntomas con intensidad propia → acción concreta → feedback.
-4. **Menú** — perfil, IA opcional (Ollama/OpenAI), exportar, borrar.
-
-Datos en `localStorage`. Sin cuenta. Sin analytics. Sin sync.
-
-## Tests
-
-```bash
+npm start    # Electron
+npm run web  # http://localhost:4173
 npm test
 ```
 
-## Estructura
+## What it does (v0.1)
 
-- `electron/main.cjs` — ventana desktop
-- `src/components/NowView.js` — superficie principal
-- `src/components/CheckInPanel.js` — registro del momento
-- `src/domain/` — ciclo, acciones, reporte
-- `src/state/store.js` — persistencia local
+One surface. No dashboard.
 
-## Licencia
+1. **Cycle** — estimated day and phase (if period date is set)
+2. **Patterns** — only with personal evidence; otherwise it says so
+3. **Check-in** — bleeding + symptoms → one concrete action → feedback
+4. **Menu** — profile, optional AI (Ollama/OpenAI), export, delete
 
-MIT — úsala, forkéala, cámbiala.
+Data stays in `localStorage` (`feer:v1`).
+
+## Layout
+
+```
+electron/main.cjs   Desktop window
+src/components/     Shell, NowView, CheckIn, modals
+src/domain/         Cycle, actions, report
+src/state/          Local persistence
+src/ui/             Event handlers
+src/services/       Optional AI providers (config ready; generation not on the main surface yet)
+test/               Product specs
+```
+
+## License
+
+MIT
